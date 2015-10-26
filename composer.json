@@ -1,0 +1,25 @@
+{
+    "name": "mattjanssen/api-wrap-bundle",
+    "type": "symfony-bundle",
+    "description": "Symfony bundle for transforming controller action returns and exceptions into JSON API responses",
+    "keywords": [],
+    "homepage": "https://github.com/mattjanssen/api-wrap-bundle",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Matt Janssen",
+            "email": "matt@mattjanssen.com"
+        }
+    ],
+    "require": {
+        "php": ">=5.6.0",
+        "symfony/framework-bundle": "~2.7",
+        "sensio/framework-extra-bundle": "*"
+    },
+    "suggest": {
+        "jms/serializer-bundle": "For serializing with the JMS Serializer"
+    },
+    "autoload": {
+        "psr-4": { "MattJanssen\\ApiWrapBundle\\": "" }
+    }
+}
