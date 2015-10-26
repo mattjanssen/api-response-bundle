@@ -6,6 +6,7 @@ use JMS\Serializer\SerializationContext;
 use JMS\Serializer\SerializerInterface;
 
 /**
+ * Adapter for Serializing Using JMS Serializer
  *
  * @author Matt Janssen <matt@mattjanssen.com>
  */
