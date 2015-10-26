@@ -1,6 +1,6 @@
 <?php
 
-namespace ApiWrapBundle\Annotation;
+namespace MattJanssen\ApiWrapBundle\Annotation;
 
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\ConfigurationAnnotation;
 

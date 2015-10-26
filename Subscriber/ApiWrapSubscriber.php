@@ -1,13 +1,13 @@
 <?php
 
-namespace ApiWrapBundle\Subscriber;
+namespace MattJanssen\ApiWrapBundle\Subscriber;
 
-use ApiWrapBundle\Annotation\ApiWrap;
-use ApiWrapBundle\DependencyInjection\Configuration;
-use ApiWrapBundle\Exception\ApiWrapException;
-use ApiWrapBundle\Model\ApiWrapErrorModel;
-use ApiWrapBundle\Model\ApiWrapResponseModel;
-use ApiWrapBundle\Serializer\Adapter\SerializerAdapterInterface;
+use MattJanssen\ApiWrapBundle\Annotation\ApiWrap;
+use MattJanssen\ApiWrapBundle\DependencyInjection\Configuration;
+use MattJanssen\ApiWrapBundle\Exception\ApiWrapException;
+use MattJanssen\ApiWrapBundle\Model\ApiWrapErrorModel;
+use MattJanssen\ApiWrapBundle\Model\ApiWrapResponseModel;
+use MattJanssen\ApiWrapBundle\Serializer\Adapter\SerializerAdapterInterface;
 use JMS\Serializer\SerializationContext;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;

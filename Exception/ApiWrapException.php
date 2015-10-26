@@ -1,6 +1,6 @@
 <?php
 
-namespace ApiWrapBundle\Exception;
+namespace MattJanssen\ApiWrapBundle\Exception;
 
 use Symfony\Component\HttpFoundation\Response;
 

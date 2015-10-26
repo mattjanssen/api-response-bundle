@@ -1,9 +1,9 @@
 <?php
 
-namespace ApiWrapBundle\DependencyInjection;
+namespace MattJanssen\ApiWrapBundle\DependencyInjection;
 
-use ApiWrapBundle\Serializer\Adapter\JmsSerializerAdapter;
-use ApiWrapBundle\Serializer\Adapter\JsonEncodeSerializerAdapter;
+use MattJanssen\ApiWrapBundle\Serializer\Adapter\JmsSerializerAdapter;
+use MattJanssen\ApiWrapBundle\Serializer\Adapter\JsonEncodeSerializerAdapter;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;

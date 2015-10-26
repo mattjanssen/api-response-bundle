@@ -1,6 +1,6 @@
 <?php
 
-namespace ApiWrapBundle\Model;
+namespace MattJanssen\ApiWrapBundle\Model;
 
 /**
  * API Wrap Response Model
