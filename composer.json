@@ -20,6 +20,6 @@
         "jms/serializer-bundle": "For serializing with the JMS Serializer"
     },
     "autoload": {
-        "psr-4": { "MattJanssen\\ApiResponseBundle\\": "" }
+        "psr-4": { "MattJanssen\\ApiResponseBundle\\": "src/" }
     }
 }
