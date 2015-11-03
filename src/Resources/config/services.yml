@@ -1,13 +1,13 @@
 services:
     # Seralizer Adapter
     api_response.serializer_adapter:
-        class: ApiResponseBundle\Serializer\Adapter\SerializerAdapterInterface
+        class: MattJanssen\ApiResponseBundle\Serializer\Adapter\SerializerAdapterInterface
         synthetic: true
 
     # Subscribers
     api_response.subscriber.api_response:
-        class: ApiResponseBundle\Subscriber\ApiResponseSubscriber
+        class: MattJanssen\ApiResponseBundle\Subscriber\ApiResponseSubscriber
         tags: [ { name: kernel.event_subscriber } ]
         arguments:
-            - @api_response.serializer_adapter
+            - %api_response.default_serializer%
             - %kernel.debug%

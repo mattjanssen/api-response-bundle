@@ -3,10 +3,14 @@
 namespace MattJanssen\ApiResponseBundle\Subscriber;
 
 use MattJanssen\ApiResponseBundle\Annotation\ApiResponse;
+use MattJanssen\ApiResponseBundle\DependencyInjection\Configuration;
 use MattJanssen\ApiResponseBundle\Exception\ApiResponseException;
 use MattJanssen\ApiResponseBundle\Model\ApiResponseErrorModel;
 use MattJanssen\ApiResponseBundle\Model\ApiResponseResponseModel;
+use MattJanssen\ApiResponseBundle\Serializer\Adapter\JmsSerializerAdapter;
+use MattJanssen\ApiResponseBundle\Serializer\Adapter\JsonEncodeSerializerAdapter;
 use MattJanssen\ApiResponseBundle\Serializer\Adapter\SerializerAdapterInterface;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
@@ -28,6 +32,26 @@ use Symfony\Component\Security\Core\Exception\AuthenticationException;
  */
 class ApiResponseSubscriber implements EventSubscriberInterface
 {
+
+    /**
+     * DI Container
+     *
+     * Used to build the appropriate serialization adapter depending on configuration and annotation.
+     *
+     * @var ContainerInterface
+     */
+    private $container;
+
+    /**
+     * Default Serializer
+     *
+     * One of the Configuration::SERIALIZER_* constants.
+     * @see MattJanssen\ApiResponseBundle\DependencyInjection\Configuration::SERIALIZER_JSON_ENCODE
+     *
+     * @var string
+     */
+    private $defaultSerializer;
+
     /**
      * Kernel's Debug Status
      *
@@ -36,24 +60,22 @@ class ApiResponseSubscriber implements EventSubscriberInterface
     private $debug;
 
     /**
-     * @var SerializerAdapterInterface
-     */
-    private $serializerAdapter;
-
-    /**
      * Constructor
      *
-     * @param SerializerAdapterInterface $serializerAdapter
+     * @param ContainerInterface $container
+     * @param string $defaultSerializer
      * @param bool $debug
      * @internal param string $serializerName
      */
     public function __construct(
-        SerializerAdapterInterface $serializerAdapter,
+        ContainerInterface $container,
+        $defaultSerializer,
         $debug
     )
     {
+        $this->container = $container;
+        $this->defaultSerializer = $defaultSerializer;
         $this->debug = $debug;
-        $this->serializerAdapter = $serializerAdapter;
     }
 
     /**
@@ -73,6 +95,8 @@ class ApiResponseSubscriber implements EventSubscriberInterface
      * This only performs if the @ApiResponse annotation was used on the controller or action.
      *
      * @param GetResponseForControllerResultEvent $event
+     *
+     * @throws \Exception
      */
     public function onKernelView(GetResponseForControllerResultEvent $event)
     {
@@ -84,16 +108,54 @@ class ApiResponseSubscriber implements EventSubscriberInterface
             return;
         }
 
+        $overrideSerializer = $configuration->getSerializer();
+
+        $serializerName = null === $overrideSerializer ? $this->defaultSerializer : $overrideSerializer;
+
+        $serializerAdapter = $this->createSerializerAdapter($serializerName);
+
         $data = $event->getControllerResult();
 
         $apiResponseModel = (new ApiResponseResponseModel())
             ->setData($data);
 
-        $jsonString = $this->serializerAdapter->serialize($apiResponseModel, $configuration->getGroups());
+        $jsonString = $serializerAdapter->serialize($apiResponseModel, $configuration->getGroups());
 
         $apiResponse = new Response($jsonString, 200, ['Content-Type' => 'application/json']);
 
         $event->setResponse($apiResponse);
+    }
+
+    /**
+     * Instantiate the Requested Serializer Adapter
+     *
+     * @param string $serializerName One of the Configuration::SERIALIZER_* constants.
+     *
+     * @return SerializerAdapterInterface
+     *
+     * @throws \Exception
+     */
+    private function createSerializerAdapter($serializerName)
+    {
+        switch ($serializerName) {
+            case Configuration::SERIALIZER_JSON_ENCODE:
+                $serializerAdapter = new JsonEncodeSerializerAdapter();
+                break;
+
+            case Configuration::SERIALIZER_JMS_SERIALIZER:
+                $jmsSerializer = $this->container->get('jms_serializer');
+                $serializerAdapter = new JmsSerializerAdapter($jmsSerializer);
+                break;
+
+            case Configuration::SERIALIZER_FRACTAL:
+                throw new \Exception('Fractal serializer not yet implemented.');
+                break;
+
+            default:
+                throw new \Exception('Unrecognized serializer configured.');
+        }
+
+        return $serializerAdapter;
     }
 
     /**

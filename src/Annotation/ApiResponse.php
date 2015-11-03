@@ -25,6 +25,16 @@ class ApiResponse extends ConfigurationAnnotation
     private $groups = [];
 
     /**
+     * Override the Default Serializer for this Action
+     *
+     * One of the Configuration::SERIALIZER_* constants.
+     * @see MattJanssen\ApiResponseBundle\DependencyInjection\Configuration::SERIALIZER_JSON_ENCODE
+     *
+     * @var string
+     */
+    private $serializer;
+
+    /**
      * {@inheritdoc}
      */
     public function getAliasName()
@@ -56,6 +66,26 @@ class ApiResponse extends ConfigurationAnnotation
     public function setGroups($groups)
     {
         $this->groups = $groups;
+
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getSerializer()
+    {
+        return $this->serializer;
+    }
+
+    /**
+     * @param string $serializer
+     *
+     * @return $this
+     */
+    public function setSerializer($serializer)
+    {
+        $this->serializer = $serializer;
 
         return $this;
     }

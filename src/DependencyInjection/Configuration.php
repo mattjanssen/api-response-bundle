@@ -26,7 +26,7 @@ class Configuration implements ConfigurationInterface
 
         $rootNode
             ->children()
-                ->enumNode('serializer')
+                ->enumNode('default_serializer')
                     ->values([
                         self::SERIALIZER_JSON_ENCODE,
                         self::SERIALIZER_JMS_SERIALIZER,
