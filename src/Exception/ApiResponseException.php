@@ -7,13 +7,13 @@ use Symfony\Component\HttpFoundation\Response;
 /**
  * Exception for a Failed API Response
  *
- * When thrown, the code and message from this exception will be placed into a failed API response.
+ * When thrown, the code and message and data from this exception will be placed into a failed API response.
  *
  * Note: It is recommended that this exception only be thrown from the controller actions themselves.
  *
  * @author Matt Janssen <matt@mattjanssen.com>
  */
-class ApiResponseException extends \Exception
+class ApiResponseException extends \Exception implements ApiResponseExceptionInterface
 {
     /**
      * HTTP Response Status Code
@@ -21,6 +21,20 @@ class ApiResponseException extends \Exception
      * @var int
      */
     private $httpStatusCode;
+
+    /**
+     * Extra Error Data to Expose to Client
+     *
+     * Use this to add data objects related to the error.
+     *
+     * An example usage would be to include a Symfony Form object after errors were encountered, but only
+     * if you have already setup the serializer to handle Symfony Form objects.
+     *
+     * Note: Do not use this to send stack traces or other sensitive data as it may be serialized to the client.
+     *
+     * @var mixed
+     */
+    private $errorData;
 
     /**
      * {@inheritdoc}
@@ -42,9 +56,7 @@ class ApiResponseException extends \Exception
     }
 
     /**
-     * Get the HTTP Status Code
-     *
-     * @return int
+     * {@inheritdoc}
      */
     public function getHttpStatusCode()
     {
@@ -52,16 +64,28 @@ class ApiResponseException extends \Exception
     }
 
     /**
-     * Set the HTTP Status Code
-     *
-     * @param int $httpStatusCode
-     *
-     * @return $this
+     * {@inheritdoc}
      */
     public function setHttpStatusCode($httpStatusCode)
     {
         $this->httpStatusCode = $httpStatusCode;
 
         return $this;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getErrorData()
+    {
+        return $this->errorData;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function setErrorData($errorData)
+    {
+        $this->errorData = $errorData;
     }
 }

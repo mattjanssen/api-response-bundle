@@ -4,7 +4,7 @@ namespace MattJanssen\ApiResponseBundle\Subscriber;
 
 use MattJanssen\ApiResponseBundle\Annotation\ApiResponse;
 use MattJanssen\ApiResponseBundle\DependencyInjection\Configuration;
-use MattJanssen\ApiResponseBundle\Exception\ApiResponseException;
+use MattJanssen\ApiResponseBundle\Exception\ApiResponseExceptionInterface;
 use MattJanssen\ApiResponseBundle\Model\ApiResponseErrorModel;
 use MattJanssen\ApiResponseBundle\Model\ApiResponseResponseModel;
 use MattJanssen\ApiResponseBundle\Serializer\Adapter\JmsSerializerAdapter;
@@ -105,6 +105,7 @@ class ApiResponseSubscriber implements EventSubscriberInterface
         /** @var ApiResponse $configuration */
         $configuration = $request->attributes->get('_api_response');
         if (!$configuration) {
+            // The annotation was not present on this controller/action.
             return;
         }
 
@@ -172,54 +173,56 @@ class ApiResponseSubscriber implements EventSubscriberInterface
         /** @var ApiResponse $configuration */
         $configuration = $request->attributes->get('_api_response');
         if (!$configuration) {
+            // The annotation was not present on this controller/action.
             return;
         }
 
         $exception = $event->getException();
 
+        $apiErrorModel = new ApiResponseErrorModel();
+
         // Determine the API error code, API error title, and HTTP status code
         // depending on the type of exception thrown.
-        if ($exception instanceof ApiResponseException) {
-            // The ApiResponseException code gets passed through as the API error code.
-            $errorCode = $exception->getCode();
-
+        if ($exception instanceof ApiResponseExceptionInterface) {
             // There is a separate HTTP status code that can also be set on the exception. The default is 400.
             $httpCode = $exception->getHttpStatusCode();
 
+            // The ApiResponseException code gets passed through as the API error code.
             // The ApiResponseException message is used at the API error title.
-            $errorTitle = $exception->getMessage();
+            // The ApiResponseException extra data is passed on to the API response.
+            $apiErrorModel->setCode($exception->getCode())
+                ->setTitle($exception->getMessage())
+                ->setErrorData($exception->getErrorData());
         } elseif ($exception instanceof HttpExceptionInterface) {
             // Use the code from the Symfony HTTP exception as both the API error code and the HTTP status code.
-            $errorCode = $exception->getStatusCode();
-            $httpCode = $errorCode;
+            $httpCode = $exception->getStatusCode();
 
             // Use the corresponding generic HTTP status message as the API error title.
-            $errorTitle = Response::$statusTexts[$httpCode];
+            $apiErrorModel->setCode($httpCode)
+                ->setTitle(Response::$statusTexts[$httpCode]);
         } elseif ($exception instanceof AuthenticationException) {
             // Authentication exceptions use 401 for both the API error code and the HTTP status code.
-            $errorCode = Response::HTTP_UNAUTHORIZED;
-            $httpCode = $errorCode;
+            $httpCode = Response::HTTP_UNAUTHORIZED;
 
             // Use the corresponding generic HTTP status message as the API error title.
-            $errorTitle = Response::$statusTexts[$httpCode];
+            $apiErrorModel->setCode($httpCode)
+                ->setTitle(Response::$statusTexts[$httpCode]);
         } else {
             // All other errors use 500 for both the API error code and the HTTP status code.
-            $errorCode = Response::HTTP_INTERNAL_SERVER_ERROR;
-            $httpCode = $errorCode;
+            $httpCode = Response::HTTP_INTERNAL_SERVER_ERROR;
+
+            $apiErrorModel->setCode($httpCode);
 
             // The API error title is determined based on the environment.
             if ($this->debug) {
-                // For debug environments, exception messages get passed straight through to the client.
-                $errorTitle = (string) $exception;
+                // For debug environments, exception messages and data get passed straight through to the client.
+                $apiErrorModel->setTitle((string) $exception)
+                    ->setErrorData($exception->getTraceAsString());
             } else {
                 // For non-debug environments, use the corresponding generic HTTP status message as the API error title.
-                $errorTitle = Response::$statusTexts[$httpCode];
+                $apiErrorModel->setTitle(Response::$statusTexts[$httpCode]);
             }
         }
-
-        $apiErrorModel = (new ApiResponseErrorModel())
-            ->setCode($errorCode)
-            ->setTitle($errorTitle);
 
         $apiResponseModel = (new ApiResponseResponseModel())
             ->addError($apiErrorModel);

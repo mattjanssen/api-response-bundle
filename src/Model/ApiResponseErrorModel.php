@@ -24,6 +24,13 @@ class ApiResponseErrorModel implements \JsonSerializable
     private $title;
 
     /**
+     * Extra Error Data
+     *
+     * @var mixed
+     */
+    private $errorData;
+
+    /**
      * {@inheritdoc}
      */
     function jsonSerialize()
@@ -31,6 +38,7 @@ class ApiResponseErrorModel implements \JsonSerializable
         return [
             'code' => $this->code,
             'title' => $this->title,
+            'errorData' => $this->errorData,
         ];
     }
 
@@ -78,6 +86,26 @@ class ApiResponseErrorModel implements \JsonSerializable
     public function setTitle($title)
     {
         $this->title = $title;
+
+        return $this;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getErrorData()
+    {
+        return $this->errorData;
+    }
+
+    /**
+     * @param mixed $errorData
+     *
+     * @return $this
+     */
+    public function setErrorData($errorData)
+    {
+        $this->errorData = $errorData;
 
         return $this;
     }
