@@ -1,6 +1,6 @@
 <?php
 
-namespace MattJanssen\ApiWrapBundle\Serializer\Adapter;
+namespace MattJanssen\ApiResponseBundle\Serializer\Adapter;
 
 /**
  * Adapter for Serializing Using PHP json_encode

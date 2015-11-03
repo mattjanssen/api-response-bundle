@@ -1,9 +1,9 @@
 <?php
 
-namespace MattJanssen\ApiWrapBundle\DependencyInjection;
+namespace MattJanssen\ApiResponseBundle\DependencyInjection;
 
-use MattJanssen\ApiWrapBundle\Serializer\Adapter\JmsSerializerAdapter;
-use MattJanssen\ApiWrapBundle\Serializer\Adapter\JsonEncodeSerializerAdapter;
+use MattJanssen\ApiResponseBundle\Serializer\Adapter\JmsSerializerAdapter;
+use MattJanssen\ApiResponseBundle\Serializer\Adapter\JsonEncodeSerializerAdapter;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
@@ -12,11 +12,11 @@ use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Component\HttpKernel\DependencyInjection\ConfigurableExtension;
 
 /**
- * API Wrap Bundle Kernel Extension
+ * API Response Bundle Kernel Extension
  *
  * @author Matt Janssen <matt@mattjanssen.com>
  */
-class ApiWrapExtension extends ConfigurableExtension
+class ApiResponseExtension extends ConfigurableExtension
 {
     /**
      * {@inheritdoc}
@@ -46,6 +46,6 @@ class ApiWrapExtension extends ConfigurableExtension
                 throw new \Exception('Unrecognized serializer configured.');
         }
 
-        $container->setDefinition('api_wrap.serializer_adapter', $definition);
+        $container->setDefinition('api_response.serializer_adapter', $definition);
     }
 }

@@ -1,13 +1,13 @@
 <?php
 
-namespace MattJanssen\ApiWrapBundle\Model;
+namespace MattJanssen\ApiResponseBundle\Model;
 
 /**
  * Error Model Added to Failed API Responses
  *
  * @author Matt Janssen <matt@mattjanssen.com>
  */
-class ApiWrapErrorModel implements \JsonSerializable
+class ApiResponseErrorModel implements \JsonSerializable
 {
     /**
      * Application-specific API Error Code

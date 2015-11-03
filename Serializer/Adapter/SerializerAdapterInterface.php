@@ -1,6 +1,6 @@
 <?php
 
-namespace MattJanssen\ApiWrapBundle\Serializer\Adapter;
+namespace MattJanssen\ApiResponseBundle\Serializer\Adapter;
 
 /**
  * Interface for Serialization Adapters

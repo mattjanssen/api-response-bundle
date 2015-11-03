@@ -1,16 +1,16 @@
 <?php
 
-namespace MattJanssen\ApiWrapBundle\Model;
+namespace MattJanssen\ApiResponseBundle\Model;
 
 /**
- * API Wrap Response Model
+ * API Response Response Model
  *
  * This is the base object that is finally serialized into a Symfony Response.
  * It includes the data object and error object, both of which are optional.
  *
  * @author Matt Janssen <matt@mattjanssen.com>
  */
-class ApiWrapResponseModel implements \JsonSerializable
+class ApiResponseResponseModel implements \JsonSerializable
 {
     /**
      * Serializable API Response Data
@@ -22,7 +22,7 @@ class ApiWrapResponseModel implements \JsonSerializable
     /**
      * API Error Model
      *
-     * @var ApiWrapErrorModel
+     * @var ApiResponseErrorModel
      */
     private $error;
 
@@ -64,7 +64,7 @@ class ApiWrapResponseModel implements \JsonSerializable
     /**
      * Get the API Error Model
      *
-     * @return ApiWrapErrorModel
+     * @return ApiResponseErrorModel
      */
     public function getErrors()
     {
@@ -74,11 +74,11 @@ class ApiWrapResponseModel implements \JsonSerializable
     /**
      * Set the API Error Model
      *
-     * @param ApiWrapErrorModel $error
+     * @param ApiResponseErrorModel $error
      *
      * @return $this
      */
-    public function addError(ApiWrapErrorModel $error)
+    public function addError(ApiResponseErrorModel $error)
     {
         $this->error = $error;
 

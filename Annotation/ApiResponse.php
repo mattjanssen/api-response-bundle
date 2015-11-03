@@ -1,21 +1,21 @@
 <?php
 
-namespace MattJanssen\ApiWrapBundle\Annotation;
+namespace MattJanssen\ApiResponseBundle\Annotation;
 
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\ConfigurationAnnotation;
 
 /**
- * Annotation for Returning an API Wrap Response
+ * Annotation for Returning an API Response
  *
  * To produce a successful response, return an array or object that will be serialized
  * into the 'data' field of the API response.
- * To produce an error response, throw an ApiWrapException from the controller action.
+ * To produce an error response, throw an ApiResponseException from the controller action.
  *
  * @Annotation
  *
  * @author Matt Janssen <matt@mattjanssen.com>
  */
-class ApiWrap extends ConfigurationAnnotation
+class ApiResponse extends ConfigurationAnnotation
 {
     /**
      * Optional Groups Names for JMS Serializer
@@ -29,7 +29,7 @@ class ApiWrap extends ConfigurationAnnotation
      */
     public function getAliasName()
     {
-        return 'api_wrap';
+        return 'api_response';
     }
 
     /**

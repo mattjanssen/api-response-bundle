@@ -1,9 +1,9 @@
 {
-    "name": "mattjanssen/api-wrap-bundle",
+    "name": "mattjanssen/api-response-bundle",
     "type": "symfony-bundle",
     "description": "Symfony bundle for transforming controller action returns and exceptions into JSON API responses",
     "keywords": [],
-    "homepage": "https://github.com/mattjanssen/api-wrap-bundle",
+    "homepage": "https://github.com/mattjanssen/api-response-bundle",
     "license": "MIT",
     "authors": [
         {
@@ -20,6 +20,6 @@
         "jms/serializer-bundle": "For serializing with the JMS Serializer"
     },
     "autoload": {
-        "psr-4": { "MattJanssen\\ApiWrapBundle\\": "" }
+        "psr-4": { "MattJanssen\\ApiResponseBundle\\": "" }
     }
 }

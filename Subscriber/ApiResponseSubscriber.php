@@ -1,12 +1,12 @@
 <?php
 
-namespace MattJanssen\ApiWrapBundle\Subscriber;
+namespace MattJanssen\ApiResponseBundle\Subscriber;
 
-use MattJanssen\ApiWrapBundle\Annotation\ApiWrap;
-use MattJanssen\ApiWrapBundle\Exception\ApiWrapException;
-use MattJanssen\ApiWrapBundle\Model\ApiWrapErrorModel;
-use MattJanssen\ApiWrapBundle\Model\ApiWrapResponseModel;
-use MattJanssen\ApiWrapBundle\Serializer\Adapter\SerializerAdapterInterface;
+use MattJanssen\ApiResponseBundle\Annotation\ApiResponse;
+use MattJanssen\ApiResponseBundle\Exception\ApiResponseException;
+use MattJanssen\ApiResponseBundle\Model\ApiResponseErrorModel;
+use MattJanssen\ApiResponseBundle\Model\ApiResponseResponseModel;
+use MattJanssen\ApiResponseBundle\Serializer\Adapter\SerializerAdapterInterface;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
@@ -20,13 +20,13 @@ use Symfony\Component\Security\Core\Exception\AuthenticationException;
  * Subscriber of Kernel Events to Generate an API Response
  *
  * When a non-Response object is returned from a controller action,
- * this subscriber checks for the @ApiWrap annotation and serializes the response.
+ * this subscriber checks for the @ApiResponse annotation and serializes the response.
  *
- * This subscriber also handles exceptions thrown from controller actions with the @ApiWrap annotation.
+ * This subscriber also handles exceptions thrown from controller actions with the @ApiResponse annotation.
  *
  * @author Matt Janssen <matt@mattjanssen.com>
  */
-class ApiWrapSubscriber implements EventSubscriberInterface
+class ApiResponseSubscriber implements EventSubscriberInterface
 {
     /**
      * Kernel's Debug Status
@@ -70,7 +70,7 @@ class ApiWrapSubscriber implements EventSubscriberInterface
     /**
      * Convert Returned Controller Data into a successful API Response
      *
-     * This only performs if the @ApiWrap annotation was used on the controller or action.
+     * This only performs if the @ApiResponse annotation was used on the controller or action.
      *
      * @param GetResponseForControllerResultEvent $event
      */
@@ -78,15 +78,15 @@ class ApiWrapSubscriber implements EventSubscriberInterface
     {
         $request = $event->getRequest();
 
-        /** @var ApiWrap $configuration */
-        $configuration = $request->attributes->get('_api_wrap');
+        /** @var ApiResponse $configuration */
+        $configuration = $request->attributes->get('_api_response');
         if (!$configuration) {
             return;
         }
 
         $data = $event->getControllerResult();
 
-        $apiResponseModel = (new ApiWrapResponseModel())
+        $apiResponseModel = (new ApiResponseResponseModel())
             ->setData($data);
 
         $jsonString = $this->serializerAdapter->serialize($apiResponseModel, $configuration->getGroups());
@@ -99,7 +99,7 @@ class ApiWrapSubscriber implements EventSubscriberInterface
     /**
      * Create a Failed API Response from an Exception
      *
-     * This only performs if the @ApiWrap annotation was used on the controller or action.
+     * This only performs if the @ApiResponse annotation was used on the controller or action.
      *
      * @param GetResponseForExceptionEvent $event
      */
@@ -107,8 +107,8 @@ class ApiWrapSubscriber implements EventSubscriberInterface
     {
         $request = $event->getRequest();
 
-        /** @var ApiWrap $configuration */
-        $configuration = $request->attributes->get('_api_wrap');
+        /** @var ApiResponse $configuration */
+        $configuration = $request->attributes->get('_api_response');
         if (!$configuration) {
             return;
         }
@@ -117,14 +117,14 @@ class ApiWrapSubscriber implements EventSubscriberInterface
 
         // Determine the API error code, API error title, and HTTP status code
         // depending on the type of exception thrown.
-        if ($exception instanceof ApiWrapException) {
-            // The ApiWrapException code gets passed through as the API error code.
+        if ($exception instanceof ApiResponseException) {
+            // The ApiResponseException code gets passed through as the API error code.
             $errorCode = $exception->getCode();
 
             // There is a separate HTTP status code that can also be set on the exception. The default is 400.
             $httpCode = $exception->getHttpStatusCode();
 
-            // The ApiWrapException message is used at the API error title.
+            // The ApiResponseException message is used at the API error title.
             $errorTitle = $exception->getMessage();
         } elseif ($exception instanceof HttpExceptionInterface) {
             // Use the code from the Symfony HTTP exception as both the API error code and the HTTP status code.
@@ -155,11 +155,11 @@ class ApiWrapSubscriber implements EventSubscriberInterface
             }
         }
 
-        $apiErrorModel = (new ApiWrapErrorModel())
+        $apiErrorModel = (new ApiResponseErrorModel())
             ->setCode($errorCode)
             ->setTitle($errorTitle);
 
-        $apiResponseModel = (new ApiWrapResponseModel())
+        $apiResponseModel = (new ApiResponseResponseModel())
             ->addError($apiErrorModel);
 
         $apiResponse = new JsonResponse($apiResponseModel, $httpCode);

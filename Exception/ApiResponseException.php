@@ -1,6 +1,6 @@
 <?php
 
-namespace MattJanssen\ApiWrapBundle\Exception;
+namespace MattJanssen\ApiResponseBundle\Exception;
 
 use Symfony\Component\HttpFoundation\Response;
 
@@ -13,7 +13,7 @@ use Symfony\Component\HttpFoundation\Response;
  *
  * @author Matt Janssen <matt@mattjanssen.com>
  */
-class ApiWrapException extends \Exception
+class ApiResponseException extends \Exception
 {
     /**
      * HTTP Response Status Code

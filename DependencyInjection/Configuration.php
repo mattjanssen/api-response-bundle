@@ -1,12 +1,12 @@
 <?php
 
-namespace MattJanssen\ApiWrapBundle\DependencyInjection;
+namespace MattJanssen\ApiResponseBundle\DependencyInjection;
 
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
 use Symfony\Component\Config\Definition\ConfigurationInterface;
 
 /**
- * API Wrap Bundle Configuration
+ * API Response Bundle Configuration
  *
  * @author Matt Janssen <matt@mattjanssen.com>
  */
@@ -22,7 +22,7 @@ class Configuration implements ConfigurationInterface
     public function getConfigTreeBuilder()
     {
         $treeBuilder = new TreeBuilder();
-        $rootNode = $treeBuilder->root('api_wrap');
+        $rootNode = $treeBuilder->root('api_response');
 
         $rootNode
             ->children()

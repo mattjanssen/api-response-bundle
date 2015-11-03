@@ -1,6 +1,6 @@
 <?php
 
-namespace MattJanssen\ApiWrapBundle\Serializer\Adapter;
+namespace MattJanssen\ApiResponseBundle\Serializer\Adapter;
 
 use JMS\Serializer\SerializationContext;
 use JMS\Serializer\SerializerInterface;
