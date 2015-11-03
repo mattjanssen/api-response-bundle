@@ -9,5 +9,6 @@ services:
         class: MattJanssen\ApiResponseBundle\Subscriber\ApiResponseSubscriber
         tags: [ { name: kernel.event_subscriber } ]
         arguments:
+            - @service_container
             - %api_response.default_serializer%
             - %kernel.debug%
