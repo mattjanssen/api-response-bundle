@@ -1,6 +1,6 @@
 <?php
 
-namespace ApiResponseBundle;
+namespace MattJanssen\ApiResponseBundle;
 
 use Symfony\Component\HttpKernel\Bundle\Bundle;
 
