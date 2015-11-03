@@ -12,9 +12,12 @@
         }
     ],
     "require": {
-        "php": ">=5.5.9",
-        "symfony/framework-bundle": "~2.7",
-        "sensio/framework-extra-bundle": "*"
+        "php": "^5.4",
+        "symfony/symfony": "^2.3|^3",
+        "sensio/framework-extra-bundle": "^3"
+    },
+    "require-dev": {
+        "jms/serializer-bundle": "^1"
     },
     "suggest": {
         "jms/serializer-bundle": "For serializing with the JMS Serializer"

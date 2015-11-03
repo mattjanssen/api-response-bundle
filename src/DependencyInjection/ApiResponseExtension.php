@@ -29,12 +29,12 @@ class ApiResponseExtension extends ConfigurableExtension
         switch ($mergedConfig['serializer']) {
             case Configuration::SERIALIZER_JSON_ENCODE:
                 $definition = (new Definition())
-                    ->setClass(JsonEncodeSerializerAdapter::class);
+                    ->setClass('MattJanssen\ApiResponseBundle\Serializer\Adapter\JsonEncodeSerializerAdapter');
                 break;
 
             case Configuration::SERIALIZER_JMS_SERIALIZER:
                 $definition = (new Definition())
-                    ->setClass(JmsSerializerAdapter::class)
+                    ->setClass('MattJanssen\ApiResponseBundle\Serializer\Adapter\JmsSerializerAdapter')
                     ->addArgument(new Reference('jms_serializer'));
                 break;
 
