@@ -43,6 +43,7 @@ class ApiResponseException extends \Exception implements ApiResponseExceptionInt
         $message = null,
         $code = 0,
         $httpCode = Response::HTTP_BAD_REQUEST,
+        $errorData = null,
         \Exception $previous = null
     ) {
         if (null === $message) {
@@ -53,6 +54,7 @@ class ApiResponseException extends \Exception implements ApiResponseExceptionInt
         parent::__construct($message, $code, $previous);
 
         $this->setHttpStatusCode($httpCode);
+        $this->setErrorData($errorData);
     }
 
     /**

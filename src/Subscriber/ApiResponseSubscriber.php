@@ -12,7 +12,6 @@ use MattJanssen\ApiResponseBundle\Serializer\Adapter\JsonEncodeSerializerAdapter
 use MattJanssen\ApiResponseBundle\Serializer\Adapter\SerializerAdapterInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
-use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Event\GetResponseForControllerResultEvent;
 use Symfony\Component\HttpKernel\Event\GetResponseForExceptionEvent;
@@ -32,7 +31,6 @@ use Symfony\Component\Security\Core\Exception\AuthenticationException;
  */
 class ApiResponseSubscriber implements EventSubscriberInterface
 {
-
     /**
      * DI Container
      *
@@ -102,25 +100,21 @@ class ApiResponseSubscriber implements EventSubscriberInterface
     {
         $request = $event->getRequest();
 
-        /** @var ApiResponse $configuration */
-        $configuration = $request->attributes->get('_api_response');
-        if (!$configuration) {
+        /** @var ApiResponse $annotation */
+        $annotation = $request->attributes->get('_api_response');
+        if (!$annotation) {
             // The annotation was not present on this controller/action.
             return;
         }
 
-        $overrideSerializer = $configuration->getSerializer();
-
-        $serializerName = null === $overrideSerializer ? $this->defaultSerializer : $overrideSerializer;
-
-        $serializerAdapter = $this->createSerializerAdapter($serializerName);
+        $serializerAdapter = $this->createSerializerAdapter($annotation);
 
         $data = $event->getControllerResult();
 
         $apiResponseModel = (new ApiResponseResponseModel())
             ->setData($data);
 
-        $jsonString = $serializerAdapter->serialize($apiResponseModel, $configuration->getGroups());
+        $jsonString = $serializerAdapter->serialize($apiResponseModel, $annotation->getGroups());
 
         $apiResponse = new Response($jsonString, 200, ['Content-Type' => 'application/json']);
 
@@ -130,14 +124,19 @@ class ApiResponseSubscriber implements EventSubscriberInterface
     /**
      * Instantiate the Requested Serializer Adapter
      *
-     * @param string $serializerName One of the Configuration::SERIALIZER_* constants.
+     * @param ApiResponse $annotation
      *
      * @return SerializerAdapterInterface
      *
      * @throws \Exception
+     *
      */
-    private function createSerializerAdapter($serializerName)
+    private function createSerializerAdapter(ApiResponse $annotation)
     {
+        $overrideSerializer = $annotation->getSerializer();
+
+        $serializerName = null === $overrideSerializer ? $this->defaultSerializer : $overrideSerializer;
+
         switch ($serializerName) {
             case Configuration::SERIALIZER_JSON_ENCODE:
                 $serializerAdapter = new JsonEncodeSerializerAdapter();
@@ -170,9 +169,9 @@ class ApiResponseSubscriber implements EventSubscriberInterface
     {
         $request = $event->getRequest();
 
-        /** @var ApiResponse $configuration */
-        $configuration = $request->attributes->get('_api_response');
-        if (!$configuration) {
+        /** @var ApiResponse $annotation */
+        $annotation = $request->attributes->get('_api_response');
+        if (!$annotation) {
             // The annotation was not present on this controller/action.
             return;
         }
@@ -206,7 +205,7 @@ class ApiResponseSubscriber implements EventSubscriberInterface
 
             // Use the corresponding generic HTTP status message as the API error title.
             $apiErrorModel->setCode($httpCode)
-                ->setTitle(Response::$statusTexts[$httpCode]);
+                ->setTitle(Response::$statusTexts[Response::HTTP_UNAUTHORIZED]);
         } else {
             // All other errors use 500 for both the API error code and the HTTP status code.
             $httpCode = Response::HTTP_INTERNAL_SERVER_ERROR;
@@ -215,19 +214,30 @@ class ApiResponseSubscriber implements EventSubscriberInterface
 
             // The API error title is determined based on the environment.
             if ($this->debug) {
-                // For debug environments, exception messages and data get passed straight through to the client.
-                $apiErrorModel->setTitle((string) $exception)
+                // For debug environments, exception messages and trace get passed straight through to the client.
+                $message = sprintf(
+                    'exception \'%s\' with message \'%s\' in %s:%s',
+                    get_class($exception),
+                    $exception->getMessage(),
+                    $exception->getFile(),
+                    $exception->getLine()
+                );
+                $apiErrorModel->setTitle($message)
                     ->setErrorData($exception->getTraceAsString());
             } else {
                 // For non-debug environments, use the corresponding generic HTTP status message as the API error title.
-                $apiErrorModel->setTitle(Response::$statusTexts[$httpCode]);
+                $apiErrorModel->setTitle(Response::$statusTexts[Response::HTTP_INTERNAL_SERVER_ERROR]);
             }
         }
 
         $apiResponseModel = (new ApiResponseResponseModel())
             ->addError($apiErrorModel);
 
-        $apiResponse = new JsonResponse($apiResponseModel, $httpCode);
+        $serializerAdapter = $this->createSerializerAdapter($annotation);
+
+        $jsonString = $serializerAdapter->serialize($apiResponseModel, $annotation->getGroups());
+
+        $apiResponse = new Response($jsonString, $httpCode, ['Content-Type' => 'application/json']);
 
         $event->setResponse($apiResponse);
     }
