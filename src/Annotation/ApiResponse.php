@@ -3,6 +3,7 @@
 namespace MattJanssen\ApiResponseBundle\Annotation;
 
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\ConfigurationAnnotation;
+use Symfony\Component\HttpFoundation\Response;
 
 /**
  * Annotation for Returning an API Response
@@ -17,6 +18,13 @@ use Sensio\Bundle\FrameworkExtraBundle\Configuration\ConfigurationAnnotation;
  */
 class ApiResponse extends ConfigurationAnnotation
 {
+    /**
+     * String used by the Framework Extra Bundle to indicate if this annotation is present on the Request.
+     * If this annotation is used, the Request::$attributes bag will include a _api_response item.
+     * @see Sensio\Bundle\FrameworkExtraBundle\EventListener\ControllerListener::getConfigurations
+     */
+    const ALIAS_NAME = 'api_response';
+
     /**
      * Optional Groups Names for JMS Serializer
      *
@@ -33,6 +41,13 @@ class ApiResponse extends ConfigurationAnnotation
      * @var string
      */
     private $serializer;
+
+    /**
+     * HTTP Code for Successful Response
+     *
+     * @var int
+     */
+    private $httpCode = Response::HTTP_OK;
 
     /**
      * {@inheritdoc}
@@ -86,6 +101,26 @@ class ApiResponse extends ConfigurationAnnotation
     public function setSerializer($serializer)
     {
         $this->serializer = $serializer;
+
+        return $this;
+    }
+
+    /**
+     * @return int
+     */
+    public function getHttpCode()
+    {
+        return $this->httpCode;
+    }
+
+    /**
+     * @param int $httpCode
+     *
+     * @return $this
+     */
+    public function setHttpCode($httpCode)
+    {
+        $this->httpCode = $httpCode;
 
         return $this;
     }

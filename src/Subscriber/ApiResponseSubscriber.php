@@ -3,20 +3,15 @@
 namespace MattJanssen\ApiResponseBundle\Subscriber;
 
 use MattJanssen\ApiResponseBundle\Annotation\ApiResponse;
-use MattJanssen\ApiResponseBundle\DependencyInjection\Configuration;
 use MattJanssen\ApiResponseBundle\Exception\ApiResponseExceptionInterface;
-use MattJanssen\ApiResponseBundle\Model\ApiResponseErrorModel;
-use MattJanssen\ApiResponseBundle\Model\ApiResponseResponseModel;
-use MattJanssen\ApiResponseBundle\Serializer\Adapter\JmsSerializerAdapter;
-use MattJanssen\ApiResponseBundle\Serializer\Adapter\JsonEncodeSerializerAdapter;
-use MattJanssen\ApiResponseBundle\Serializer\Adapter\SerializerAdapterInterface;
-use Symfony\Component\DependencyInjection\ContainerInterface;
+use MattJanssen\ApiResponseBundle\Generator\ApiResponseGenerator;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Event\GetResponseForControllerResultEvent;
 use Symfony\Component\HttpKernel\Event\GetResponseForExceptionEvent;
 use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 use Symfony\Component\HttpKernel\KernelEvents;
+use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 use Symfony\Component\Security\Core\Exception\AuthenticationException;
 
 /**
@@ -32,23 +27,11 @@ use Symfony\Component\Security\Core\Exception\AuthenticationException;
 class ApiResponseSubscriber implements EventSubscriberInterface
 {
     /**
-     * DI Container
+     * API Response Generator
      *
-     * Used to build the appropriate serialization adapter depending on configuration and annotation.
-     *
-     * @var ContainerInterface
+     * @var ApiResponseGenerator
      */
-    private $container;
-
-    /**
-     * Default Serializer
-     *
-     * One of the Configuration::SERIALIZER_* constants.
-     * @see MattJanssen\ApiResponseBundle\DependencyInjection\Configuration::SERIALIZER_JSON_ENCODE
-     *
-     * @var string
-     */
-    private $defaultSerializer;
+    private $responseGenerator;
 
     /**
      * Kernel's Debug Status
@@ -60,19 +43,14 @@ class ApiResponseSubscriber implements EventSubscriberInterface
     /**
      * Constructor
      *
-     * @param ContainerInterface $container
-     * @param string $defaultSerializer
+     * @param ApiResponseGenerator $responseGenerator
      * @param bool $debug
-     * @internal param string $serializerName
      */
     public function __construct(
-        ContainerInterface $container,
-        $defaultSerializer,
+        ApiResponseGenerator $responseGenerator,
         $debug
-    )
-    {
-        $this->container = $container;
-        $this->defaultSerializer = $defaultSerializer;
+    ) {
+        $this->responseGenerator = $responseGenerator;
         $this->debug = $debug;
     }
 
@@ -83,7 +61,7 @@ class ApiResponseSubscriber implements EventSubscriberInterface
     {
         return [
             KernelEvents::VIEW => 'onKernelView',
-            KernelEvents::EXCEPTION => 'onKernelException',
+            KernelEvents::EXCEPTION => ['onKernelException', 100],
         ];
     }
 
@@ -101,61 +79,22 @@ class ApiResponseSubscriber implements EventSubscriberInterface
         $request = $event->getRequest();
 
         /** @var ApiResponse $annotation */
-        $annotation = $request->attributes->get('_api_response');
+        $annotation = $request->attributes->get('_' . ApiResponse::ALIAS_NAME);
         if (!$annotation) {
             // The annotation was not present on this controller/action.
             return;
         }
 
-        $serializerAdapter = $this->createSerializerAdapter($annotation);
-
         $data = $event->getControllerResult();
 
-        $apiResponseModel = (new ApiResponseResponseModel())
-            ->setData($data);
+        $response = $this->responseGenerator->generateSuccessResponse(
+            $data,
+            $annotation->getHttpCode(),
+            $annotation->getGroups(),
+            $annotation->getSerializer()
+        );
 
-        $jsonString = $serializerAdapter->serialize($apiResponseModel, $annotation->getGroups());
-
-        $apiResponse = new Response($jsonString, 200, ['Content-Type' => 'application/json']);
-
-        $event->setResponse($apiResponse);
-    }
-
-    /**
-     * Instantiate the Requested Serializer Adapter
-     *
-     * @param ApiResponse $annotation
-     *
-     * @return SerializerAdapterInterface
-     *
-     * @throws \Exception
-     *
-     */
-    private function createSerializerAdapter(ApiResponse $annotation)
-    {
-        $overrideSerializer = $annotation->getSerializer();
-
-        $serializerName = null === $overrideSerializer ? $this->defaultSerializer : $overrideSerializer;
-
-        switch ($serializerName) {
-            case Configuration::SERIALIZER_JSON_ENCODE:
-                $serializerAdapter = new JsonEncodeSerializerAdapter();
-                break;
-
-            case Configuration::SERIALIZER_JMS_SERIALIZER:
-                $jmsSerializer = $this->container->get('jms_serializer');
-                $serializerAdapter = new JmsSerializerAdapter($jmsSerializer);
-                break;
-
-            case Configuration::SERIALIZER_FRACTAL:
-                throw new \Exception('Fractal serializer not yet implemented.');
-                break;
-
-            default:
-                throw new \Exception('Unrecognized serializer configured.');
-        }
-
-        return $serializerAdapter;
+        $event->setResponse($response);
     }
 
     /**
@@ -170,7 +109,7 @@ class ApiResponseSubscriber implements EventSubscriberInterface
         $request = $event->getRequest();
 
         /** @var ApiResponse $annotation */
-        $annotation = $request->attributes->get('_api_response');
+        $annotation = $request->attributes->get('_' . ApiResponse::ALIAS_NAME);
         if (!$annotation) {
             // The annotation was not present on this controller/action.
             return;
@@ -178,39 +117,38 @@ class ApiResponseSubscriber implements EventSubscriberInterface
 
         $exception = $event->getException();
 
-        $apiErrorModel = new ApiResponseErrorModel();
+        $httpCode = null;
+        $errorCode = null;
+        $errorTitle = null;
+        $errorData = null;
 
         // Determine the API error code, API error title, and HTTP status code
         // depending on the type of exception thrown.
         if ($exception instanceof ApiResponseExceptionInterface) {
             // There is a separate HTTP status code that can also be set on the exception. The default is 400.
             $httpCode = $exception->getHttpStatusCode();
-
-            // The ApiResponseException code gets passed through as the API error code.
-            // The ApiResponseException message is used at the API error title.
-            // The ApiResponseException extra data is passed on to the API response.
-            $apiErrorModel->setCode($exception->getCode())
-                ->setTitle($exception->getMessage())
-                ->setErrorData($exception->getErrorData());
+            $errorCode = $exception->getCode();
+            $errorTitle = $exception->getMessage();
+            $errorData = $exception->getErrorData();
         } elseif ($exception instanceof HttpExceptionInterface) {
             // Use the code from the Symfony HTTP exception as both the API error code and the HTTP status code.
             $httpCode = $exception->getStatusCode();
-
-            // Use the corresponding generic HTTP status message as the API error title.
-            $apiErrorModel->setCode($httpCode)
-                ->setTitle(Response::$statusTexts[$httpCode]);
+            $errorCode = $exception->getStatusCode();
+            $errorTitle = Response::$statusTexts[$exception->getStatusCode()];
         } elseif ($exception instanceof AuthenticationException) {
             // Authentication exceptions use 401 for both the API error code and the HTTP status code.
             $httpCode = Response::HTTP_UNAUTHORIZED;
-
-            // Use the corresponding generic HTTP status message as the API error title.
-            $apiErrorModel->setCode($httpCode)
-                ->setTitle(Response::$statusTexts[Response::HTTP_UNAUTHORIZED]);
+            $errorCode = Response::HTTP_UNAUTHORIZED;
+            $errorTitle = Response::$statusTexts[Response::HTTP_UNAUTHORIZED];
+        } elseif ($exception instanceof AccessDeniedException) {
+            // Authorization exceptions use 403 for both the API error code and the HTTP status code.
+            $httpCode = Response::HTTP_FORBIDDEN;
+            $errorCode = Response::HTTP_FORBIDDEN;
+            $errorTitle = Response::$statusTexts[Response::HTTP_FORBIDDEN];
         } else {
             // All other errors use 500 for both the API error code and the HTTP status code.
             $httpCode = Response::HTTP_INTERNAL_SERVER_ERROR;
-
-            $apiErrorModel->setCode($httpCode);
+            $errorCode = Response::HTTP_INTERNAL_SERVER_ERROR;
 
             // The API error title is determined based on the environment.
             if ($this->debug) {
@@ -222,23 +160,21 @@ class ApiResponseSubscriber implements EventSubscriberInterface
                     $exception->getFile(),
                     $exception->getLine()
                 );
-                $apiErrorModel->setTitle($message)
-                    ->setErrorData($exception->getTraceAsString());
+                $errorTitle = $message;
+                $errorData = $exception->getTraceAsString();
             } else {
                 // For non-debug environments, use the corresponding generic HTTP status message as the API error title.
-                $apiErrorModel->setTitle(Response::$statusTexts[Response::HTTP_INTERNAL_SERVER_ERROR]);
+                $errorTitle = Response::$statusTexts[Response::HTTP_INTERNAL_SERVER_ERROR];
             }
         }
 
-        $apiResponseModel = (new ApiResponseResponseModel())
-            ->addError($apiErrorModel);
+        $response = $this->responseGenerator->generateErrorResponse(
+            $httpCode,
+            $errorCode,
+            $errorTitle,
+            $errorData
+        );
 
-        $serializerAdapter = $this->createSerializerAdapter($annotation);
-
-        $jsonString = $serializerAdapter->serialize($apiResponseModel, $annotation->getGroups());
-
-        $apiResponse = new Response($jsonString, $httpCode, ['Content-Type' => 'application/json']);
-
-        $event->setResponse($apiResponse);
+        $event->setResponse($response);
     }
 }
