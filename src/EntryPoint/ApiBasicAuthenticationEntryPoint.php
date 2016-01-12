@@ -48,8 +48,6 @@ class ApiBasicAuthenticationEntryPoint implements AuthenticationEntryPointInterf
             Response::$statusTexts[Response::HTTP_UNAUTHORIZED]
         );
 
-        $response->headers->set('WWW-Authenticate', 'Basic realm="test"');
-
         return $response;
     }
 }
