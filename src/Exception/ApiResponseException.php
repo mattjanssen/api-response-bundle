@@ -38,6 +38,9 @@ class ApiResponseException extends \Exception implements ApiResponseExceptionInt
 
     /**
      * {@inheritdoc}
+     *
+     * @param int $httpCode Code to use as the HTTP header status.
+     * @param mixed $errorData Extra data about the error to expose via the API.
      */
     public function __construct(
         $message = null,
