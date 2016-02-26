@@ -2,6 +2,7 @@
 
 namespace MattJanssen\ApiResponseBundle\Annotation;
 
+use MattJanssen\ApiResponseBundle\Model\ApiPathConfigInterface;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\ConfigurationAnnotation;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -16,7 +17,7 @@ use Symfony\Component\HttpFoundation\Response;
  *
  * @author Matt Janssen <matt@mattjanssen.com>
  */
-class ApiResponse extends ConfigurationAnnotation
+class ApiResponse extends ConfigurationAnnotation implements ApiPathConfigInterface
 {
     /**
      * String used by the Framework Extra Bundle to indicate if this annotation is present on the Request.
@@ -48,6 +49,21 @@ class ApiResponse extends ConfigurationAnnotation
      * @var int
      */
     private $httpCode = Response::HTTP_OK;
+
+    /**
+     * @var string
+     */
+    private $corsAllowOriginRegex;
+
+    /**
+     * @var string[]
+     */
+    private $corsAllowHeaders;
+
+    /**
+     * @var int
+     */
+    private $corsMaxAge;
 
     /**
      * {@inheritdoc}
@@ -123,5 +139,30 @@ class ApiResponse extends ConfigurationAnnotation
         $this->httpCode = $httpCode;
 
         return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getCorsAllowOriginRegex()
+    {
+        return $this->corsAllowOriginRegex;
+    }
+
+    /**
+     * @return string[]
+     */
+    public function getCorsAllowHeaders()
+    {
+        return $this->corsAllowHeaders;
+    }
+
+
+    /**
+     * @return int
+     */
+    public function getCorsMaxAge()
+    {
+        return $this->corsMaxAge;
     }
 }

@@ -23,5 +23,6 @@ class ApiResponseExtension extends ConfigurableExtension
         $loader->load('services.yml');
 
         $container->setParameter('api_response.default_serializer', $mergedConfig['default_serializer']);
+        $container->setParameter('api_response.path_configs', $mergedConfig['paths']);
     }
 }

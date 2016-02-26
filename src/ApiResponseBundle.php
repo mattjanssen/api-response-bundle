@@ -11,4 +11,7 @@ use Symfony\Component\HttpKernel\Bundle\Bundle;
  */
 class ApiResponseBundle extends Bundle
 {
+    public function boot()
+    {
+    }
 }

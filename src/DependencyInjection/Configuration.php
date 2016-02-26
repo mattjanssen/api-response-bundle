@@ -34,6 +34,20 @@ class Configuration implements ConfigurationInterface
                     ])
                     ->defaultValue(self::SERIALIZER_JSON_ENCODE)
                 ->end()
+                ->arrayNode('paths')
+                    ->normalizeKeys(false)
+                    ->prototype('array')
+                        ->children()
+                            ->scalarNode('cors_allow_origin_regex')->end()
+                            ->arrayNode('cors_allow_headers')
+                                ->prototype('scalar')->end()
+                            ->end()
+                            ->integerNode('cors_max_age')
+                                ->defaultValue(86400) // One day in seconds.
+                            ->end()
+                        ->end()
+                    ->end()
+                ->end()
             ->end()
         ;
 

@@ -10,6 +10,7 @@ services:
         tags: [ { name: kernel.event_subscriber } ]
         arguments:
             - @api_response.generator.api_response
+            - %api_response.path_configs%
             - %kernel.debug%
 
     # Generator
