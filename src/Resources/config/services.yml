@@ -9,7 +9,7 @@ services:
         class: MattJanssen\ApiResponseBundle\Subscriber\ApiResponseSubscriber
         tags: [ { name: kernel.event_subscriber } ]
         arguments:
-            - @api_response.generator.api_response
+            - "@api_response.generator.api_response"
             - %api_response.path_configs%
             - %kernel.debug%
 
@@ -17,17 +17,17 @@ services:
     api_response.generator.api_response:
         class: MattJanssen\ApiResponseBundle\Generator\ApiResponseGenerator
         arguments:
-            - @service_container
+            - "@service_container"
             - %api_response.default_serializer%
 
     # Firewall Entry Point
     api_response.entry_point.api_basic:
         class: MattJanssen\ApiResponseBundle\EntryPoint\ApiBasicAuthenticationEntryPoint
         arguments:
-            - @api_response.generator.api_response
+            - "@api_response.generator.api_response"
 
     # Firewall Access Denied Handler
     api_response.authorization.api_basic_access_denied_handler:
         class: MattJanssen\ApiResponseBundle\Authorization\ApiBasicAccessDeniedHandler
         arguments:
-            - @api_response.generator.api_response
+            - "@api_response.generator.api_response"
