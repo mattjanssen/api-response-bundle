@@ -3,7 +3,7 @@
 namespace MattJanssen\ApiResponseBundle\Exception;
 
 use MattJanssen\ApiResponseBundle\Model\ApiResponseFormErrorData;
-use Symfony\Component\Form\Form;
+use Symfony\Component\Form\FormInterface;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
@@ -16,10 +16,10 @@ class ApiFormException extends ApiResponseException
     /**
      * {@inheritdoc}
      *
-     * @param Form $form Form from which to show errors from.
+     * @param FormInterface $form Form from which to show errors from.
      */
     public function __construct(
-        Form $form,
+        FormInterface $form,
         $code = 0,
         $message = 'Invalid form submission.',
         $httpCode = Response::HTTP_BAD_REQUEST,
