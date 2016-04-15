@@ -13,6 +13,7 @@ use Symfony\Component\Config\Definition\ConfigurationInterface;
 class Configuration implements ConfigurationInterface
 {
     const SERIALIZER_JSON_ENCODE = 'json_encode';
+    const SERIALIZER_JSON_GROUP_ENCODE = 'json_group_encode';
     const SERIALIZER_JMS_SERIALIZER = 'jms_serializer';
     const SERIALIZER_FRACTAL = 'fractal';
 
@@ -29,6 +30,7 @@ class Configuration implements ConfigurationInterface
                 ->enumNode('default_serializer')
                     ->values([
                         self::SERIALIZER_JSON_ENCODE,
+                        self::SERIALIZER_JSON_GROUP_ENCODE,
                         self::SERIALIZER_JMS_SERIALIZER,
                         self::SERIALIZER_FRACTAL,
                     ])

@@ -5,9 +5,7 @@ namespace MattJanssen\ApiResponseBundle\Generator;
 use MattJanssen\ApiResponseBundle\DependencyInjection\Configuration;
 use MattJanssen\ApiResponseBundle\Model\ApiResponseErrorModel;
 use MattJanssen\ApiResponseBundle\Model\ApiResponseResponseModel;
-use MattJanssen\ApiResponseBundle\Serializer\Adapter\JmsSerializerAdapter;
-use MattJanssen\ApiResponseBundle\Serializer\Adapter\JsonEncodeSerializerAdapter;
-use MattJanssen\ApiResponseBundle\Serializer\Adapter\SerializerAdapterInterface;
+use MattJanssen\ApiResponseBundle\Serializer\Adapter as Adapter;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -118,7 +116,7 @@ class ApiResponseGenerator
      *
      * @param string|null $overrideSerializer Name of serializer to use instead of the default.
      *
-     * @return SerializerAdapterInterface
+     * @return Adapter\SerializerAdapterInterface
      *
      * @throws \Exception
      */
@@ -128,12 +126,16 @@ class ApiResponseGenerator
 
         switch ($serializerName) {
             case Configuration::SERIALIZER_JSON_ENCODE:
-                $serializerAdapter = new JsonEncodeSerializerAdapter();
+                $serializerAdapter = new Adapter\JsonEncodeSerializerAdapter();
+                break;
+
+            case Configuration::SERIALIZER_JSON_GROUP_ENCODE:
+                $serializerAdapter = new Adapter\JsonGroupEncodeSerializerAdapter();
                 break;
 
             case Configuration::SERIALIZER_JMS_SERIALIZER:
                 $jmsSerializer = $this->container->get('jms_serializer');
-                $serializerAdapter = new JmsSerializerAdapter($jmsSerializer);
+                $serializerAdapter = new Adapter\JmsSerializerAdapter($jmsSerializer);
                 break;
 
             case Configuration::SERIALIZER_FRACTAL:
