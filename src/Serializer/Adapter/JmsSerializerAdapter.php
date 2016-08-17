@@ -34,15 +34,15 @@ class JmsSerializerAdapter implements SerializerAdapterInterface
     {
         $context = SerializationContext::create();
 
-        if ($groups) {
-            $context->setGroups($groups);
-        }
+        // Serialize null properties.
+        $context->setSerializeNull(true);
 
-        $jsonString = $this->jmsSerializer->serialize(
-            $data,
-            'json',
-            $context
-        );
+        // Always serialize the default groups. This cannot be disabled.
+        $groups[] = 'Default';
+
+        $context->setGroups($groups);
+
+        $jsonString = $this->jmsSerializer->serialize($data, 'json', $context);
 
         return $jsonString;
     }

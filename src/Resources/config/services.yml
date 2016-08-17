@@ -13,11 +13,17 @@ services:
             - %api_response.path_configs%
             - %kernel.debug%
 
+    # Factory
+    api_response.factory.serializer_adapter:
+        class: MattJanssen\ApiResponseBundle\Factory\SerializerAdapterFactory
+        arguments:
+            - "@service_container"
+
     # Generator
     api_response.generator.api_response:
         class: MattJanssen\ApiResponseBundle\Generator\ApiResponseGenerator
         arguments:
-            - "@service_container"
+            - "@api_response.factory.serializer_adapter"
             - %api_response.default_serializer%
 
     # Firewall Entry Point

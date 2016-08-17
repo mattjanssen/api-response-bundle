@@ -17,12 +17,17 @@
         "sensio/framework-extra-bundle": "^3"
     },
     "require-dev": {
+        "phpunit/phpunit": "^4.0",
+        "mockery/mockery": "^0.9.5",
         "jms/serializer-bundle": "^1"
     },
     "suggest": {
         "jms/serializer-bundle": "For serializing with the JMS Serializer"
     },
     "autoload": {
-        "psr-4": { "MattJanssen\\ApiResponseBundle\\": "src/" }
+        "psr-4": {
+            "MattJanssen\\ApiResponseBundle\\": "src/",
+            "MattJanssen\\ApiResponseBundle\\Test\\": "tests/"
+        }
     }
 }

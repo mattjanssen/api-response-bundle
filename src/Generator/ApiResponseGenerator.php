@@ -2,11 +2,9 @@
 
 namespace MattJanssen\ApiResponseBundle\Generator;
 
-use MattJanssen\ApiResponseBundle\DependencyInjection\Configuration;
+use MattJanssen\ApiResponseBundle\Factory\SerializerAdapterFactory;
 use MattJanssen\ApiResponseBundle\Model\ApiResponseErrorModel;
 use MattJanssen\ApiResponseBundle\Model\ApiResponseResponseModel;
-use MattJanssen\ApiResponseBundle\Serializer\Adapter as Adapter;
-use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
@@ -17,13 +15,11 @@ use Symfony\Component\HttpFoundation\Response;
 class ApiResponseGenerator
 {
     /**
-     * DI Container
+     * Serializer Adapter Factory
      *
-     * Used to build the appropriate serialization adapter depending on configuration and annotation.
-     *
-     * @var ContainerInterface
+     * @var SerializerAdapterFactory
      */
-    private $container;
+    private $serializerAdapterFactory;
 
     /**
      * Default Serializer
@@ -33,20 +29,20 @@ class ApiResponseGenerator
      *
      * @var string
      */
-    private $defaultSerializer;
+    private $defaultSerializerName;
 
     /**
      * Constructor
      *
-     * @param ContainerInterface $container
+     * @param SerializerAdapterFactory $serializerAdapterFactory
      * @param string $defaultSerializer
      */
     public function __construct(
-        ContainerInterface $container,
+        SerializerAdapterFactory $serializerAdapterFactory,
         $defaultSerializer
     ) {
-        $this->container = $container;
-        $this->defaultSerializer = $defaultSerializer;
+        $this->serializerAdapterFactory = $serializerAdapterFactory;
+        $this->defaultSerializerName = $defaultSerializer;
     }
 
     /**
@@ -55,7 +51,7 @@ class ApiResponseGenerator
      * @param mixed $data
      * @param int $httpCode
      * @param array $serializeGroups
-     * @param string|null $overrideSerializer Name of serializer to use instead of the default.
+     * @param string|null $serializerName Name of serializer to use instead of the default.
      *
      * @return Response
      * @throws \Exception
@@ -63,10 +59,14 @@ class ApiResponseGenerator
     public function generateSuccessResponse(
         $data,
         $httpCode = Response::HTTP_OK,
-        $serializeGroups = [],
-        $overrideSerializer = null
+        array $serializeGroups = [],
+        $serializerName = null
     ) {
-        $serializerAdapter = $this->createSerializerAdapter($overrideSerializer);
+        if (null === $serializerName) {
+            $serializerName = $this->defaultSerializerName;
+        }
+
+        $serializerAdapter = $this->serializerAdapterFactory->createSerializerAdapter($serializerName);
 
         $apiResponseModel = (new ApiResponseResponseModel())
             ->setData($data);
@@ -102,50 +102,12 @@ class ApiResponseGenerator
         $apiResponseModel = (new ApiResponseResponseModel())
             ->addError($apiErrorModel);
 
-        $serializerAdapter = $this->createSerializerAdapter();
+        $serializerAdapter = $this->serializerAdapterFactory->createSerializerAdapter($this->defaultSerializerName);
 
         $jsonString = $serializerAdapter->serialize($apiResponseModel);
 
         $response = new Response($jsonString, $httpCode, ['Content-Type' => 'application/json']);
 
         return $response;
-    }
-
-    /**
-     * Instantiate the Requested Serializer Adapter
-     *
-     * @param string|null $overrideSerializer Name of serializer to use instead of the default.
-     *
-     * @return Adapter\SerializerAdapterInterface
-     *
-     * @throws \Exception
-     */
-    private function createSerializerAdapter($overrideSerializer = null)
-    {
-        $serializerName = null === $overrideSerializer ? $this->defaultSerializer : $overrideSerializer;
-
-        switch ($serializerName) {
-            case Configuration::SERIALIZER_JSON_ENCODE:
-                $serializerAdapter = new Adapter\JsonEncodeSerializerAdapter();
-                break;
-
-            case Configuration::SERIALIZER_JSON_GROUP_ENCODE:
-                $serializerAdapter = new Adapter\JsonGroupEncodeSerializerAdapter();
-                break;
-
-            case Configuration::SERIALIZER_JMS_SERIALIZER:
-                $jmsSerializer = $this->container->get('jms_serializer');
-                $serializerAdapter = new Adapter\JmsSerializerAdapter($jmsSerializer);
-                break;
-
-            case Configuration::SERIALIZER_FRACTAL:
-                throw new \Exception('Fractal serializer not yet implemented.');
-                break;
-
-            default:
-                throw new \Exception('Unrecognized serializer configured.');
-        }
-
-        return $serializerAdapter;
     }
 }

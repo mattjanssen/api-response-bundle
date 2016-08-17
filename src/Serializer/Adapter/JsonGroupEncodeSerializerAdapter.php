@@ -20,7 +20,18 @@ class JsonGroupEncodeSerializerAdapter implements SerializerAdapterInterface
      */
     public function serialize($data, array $groups = [])
     {
-        return json_encode($this->groupSerialize($data, $groups));
+        $jsonString = json_encode($this->groupSerialize($data, $groups));
+
+        $jsonError = json_last_error();
+
+        if ($jsonError !== JSON_ERROR_NONE) {
+            throw new \RuntimeException(sprintf(
+                'JsonEncodeSerializerAdapter failed to serialize due to json_serialize error %s.',
+                $jsonError
+            ));
+        }
+
+        return $jsonString;
     }
 
     /**
@@ -31,7 +42,7 @@ class JsonGroupEncodeSerializerAdapter implements SerializerAdapterInterface
      * @param mixed $data
      * @param string[] $groups
      *
-     * @return mixed[] Serializable array for json_encode()
+     * @return \stdClass|mixed[] Serializable array for json_encode()
      */
     private function groupSerialize($data, array $groups)
     {
@@ -41,16 +52,19 @@ class JsonGroupEncodeSerializerAdapter implements SerializerAdapterInterface
 
         if (is_object($data)) {
             if ($data instanceof JsonGroupSerializable) {
-                return $this->serializeArray($data->jsonGroupSerialize($groups), $groups);
+                return $this->groupSerialize($data->jsonGroupSerialize($groups), $groups);
             }
 
             if ($data instanceof \JsonSerializable) {
-                return $this->serializeArray($data->jsonSerialize(), $groups);
+                return $this->groupSerialize($data->jsonSerialize(), $groups);
             }
 
-            return null;
+            // A non-serializable object returns as an empty object.
+            // This gets converted to {} by json_encode, where as an empty array is converted to [].
+            return new \stdClass();
         }
 
+        // Scalar data is returned as-is.
         return $data;
     }
 
@@ -62,7 +76,7 @@ class JsonGroupEncodeSerializerAdapter implements SerializerAdapterInterface
      *
      * @return mixed[]
      */
-    private function serializeArray($array, $groups)
+    private function serializeArray(array $array, $groups)
     {
         return array_map(
             function ($value) use ($groups) {

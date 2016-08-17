@@ -3,6 +3,7 @@
 namespace MattJanssen\ApiResponseBundle\Annotation;
 
 use MattJanssen\ApiResponseBundle\Model\ApiPathConfigInterface;
+use MattJanssen\ApiResponseBundle\Model\ApiPathConfigTrait;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\ConfigurationAnnotation;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -19,6 +20,8 @@ use Symfony\Component\HttpFoundation\Response;
  */
 class ApiResponse extends ConfigurationAnnotation implements ApiPathConfigInterface
 {
+    use ApiPathConfigTrait;
+
     /**
      * String used by the Framework Extra Bundle to indicate if this annotation is present on the Request.
      * If this annotation is used, the Request::$attributes bag will include a _api_response item.
@@ -34,36 +37,11 @@ class ApiResponse extends ConfigurationAnnotation implements ApiPathConfigInterf
     private $groups = [];
 
     /**
-     * Override the Default Serializer for this Action
-     *
-     * One of the Configuration::SERIALIZER_* constants.
-     * @see MattJanssen\ApiResponseBundle\DependencyInjection\Configuration::SERIALIZER_JSON_ENCODE
-     *
-     * @var string
-     */
-    private $serializer;
-
-    /**
      * HTTP Code for Successful Response
      *
      * @var int
      */
     private $httpCode = Response::HTTP_OK;
-
-    /**
-     * @var string
-     */
-    private $corsAllowOriginRegex;
-
-    /**
-     * @var string[]
-     */
-    private $corsAllowHeaders;
-
-    /**
-     * @var int
-     */
-    private $corsMaxAge;
 
     /**
      * {@inheritdoc}
@@ -102,26 +80,6 @@ class ApiResponse extends ConfigurationAnnotation implements ApiPathConfigInterf
     }
 
     /**
-     * @return string
-     */
-    public function getSerializer()
-    {
-        return $this->serializer;
-    }
-
-    /**
-     * @param string $serializer
-     *
-     * @return $this
-     */
-    public function setSerializer($serializer)
-    {
-        $this->serializer = $serializer;
-
-        return $this;
-    }
-
-    /**
      * @return int
      */
     public function getHttpCode()
@@ -139,30 +97,5 @@ class ApiResponse extends ConfigurationAnnotation implements ApiPathConfigInterf
         $this->httpCode = $httpCode;
 
         return $this;
-    }
-
-    /**
-     * @return string
-     */
-    public function getCorsAllowOriginRegex()
-    {
-        return $this->corsAllowOriginRegex;
-    }
-
-    /**
-     * @return string[]
-     */
-    public function getCorsAllowHeaders()
-    {
-        return $this->corsAllowHeaders;
-    }
-
-
-    /**
-     * @return int
-     */
-    public function getCorsMaxAge()
-    {
-        return $this->corsMaxAge;
     }
 }

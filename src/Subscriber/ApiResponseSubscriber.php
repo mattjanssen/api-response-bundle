@@ -41,7 +41,9 @@ class ApiResponseSubscriber implements EventSubscriberInterface
     /**
      * API Path Configurations
      *
-     * @var array
+     * Each relative URL path has its own CORS configuration settings in this array.
+     *
+     * @var ApiPathConfig[]
      */
     private $pathConfigs;
 
@@ -88,49 +90,80 @@ class ApiResponseSubscriber implements EventSubscriberInterface
      */
     private function getPathConfig(Request $request)
     {
+        // This boolean is flipped only if the request matches a path as specified in config.yml,
+        // or if its controller action has the @ApiResponse() annotation.
         $pathServed = false;
-        $apiPathConfig = new ApiPathConfig();
 
-        $pathInfo = $request->getPathInfo();
-        foreach ($this->pathConfigs as $pathRegex => $config) {
-            if (preg_match('#' . str_replace('#', '\#', $pathRegex) . '#', $pathInfo)) {
-                $pathServed = true;
+        $compiledConfig = new ApiPathConfig();
 
-                // Override defaults with any config.yml sepcifications.
-                if (null !== $config['cors_allow_origin_regex']) {
-                    $apiPathConfig->setCorsAllowOriginRegex($config['cors_allow_origin_regex']);
-                }
-                if (null !== $config['cors_allow_headers']) {
-                    $apiPathConfig->setCorsAllowHeaders($config['cors_allow_headers']);
-                }
-                if (null !== $config['cors_max_age']) {
-                    $apiPathConfig->setCorsMaxAge($config['cors_max_age']);
-                }
+        $originPath = $request->getPathInfo();
+
+        // Create the ApiPathConfig based on the per-path options in config.yml.
+        foreach ($this->pathConfigs as $pathRegex => $pathConfig) {
+            if (!$pathConfig->isOriginAllowed($originPath)) {
+                continue;
             }
+
+            $pathServed = true;
+
+            // Override defaults with any config.yml sepcifications.
+            if (null !== $pathConfig['cors_allow_origin_regex']) {
+                $compiledConfig->setCorsAllowOriginRegex($pathConfig['cors_allow_origin_regex']);
+            }
+            if (null !== $pathConfig['cors_allow_headers']) {
+                $compiledConfig->setCorsAllowHeaders($pathConfig['cors_allow_headers']);
+            }
+            if (null !== $pathConfig['cors_max_age']) {
+                $compiledConfig->setCorsMaxAge($pathConfig['cors_max_age']);
+            }
+
+            // After the first path match, don't process the rest.
+            break;
         }
 
         /** @var ApiResponse $attribute */
         $attribute = $request->attributes->get('_' . ApiResponse::ALIAS_NAME);
+
+        // Override the ApiPathConfig properties with any optional @ApiResponse() annotation settings.
         if (null !== $attribute) {
             $pathServed = true;
 
             // Override config.yml settings with any annotation specifications.
             if (null !== $attribute->getCorsAllowOriginRegex()) {
-                $apiPathConfig->setCorsAllowOriginRegex($attribute->getCorsAllowOriginRegex());
+                $compiledConfig->setCorsAllowOriginRegex($attribute->getCorsAllowOriginRegex());
             }
             if (null !== $attribute->getCorsAllowHeaders()) {
-                $apiPathConfig->setCorsAllowHeaders($attribute->getCorsAllowHeaders());
+                $compiledConfig->setCorsAllowHeaders($attribute->getCorsAllowHeaders());
             }
             if (null !== $attribute->getCorsMaxAge()) {
-                $apiPathConfig->setCorsMaxAge($attribute->getCorsMaxAge());
+                $compiledConfig->setCorsMaxAge($attribute->getCorsMaxAge());
             }
         }
 
         if ($pathServed) {
-            return $apiPathConfig;
+            return $compiledConfig;
         }
 
         return null;
+    }
+
+    /**
+     * Merge Non-null Options from a Config into Another Config
+     *
+     * @param ApiPathConfig $compiledConfig
+     * @param ApiPathConfig $configToMerge
+     */
+    public function mergeConfig($compiledConfig, $configToMerge)
+    {
+        if (null !== $configToMerge->getCorsAllowOriginRegex()) {
+            $compiledConfig->setCorsAllowOriginRegex($configToMerge->getCorsAllowOriginRegex());
+        }
+        if (null !== $configToMerge->getCorsAllowHeaders()) {
+            $compiledConfig->setCorsAllowHeaders($configToMerge->getCorsAllowHeaders());
+        }
+        if (null !== $configToMerge->getCorsMaxAge()) {
+            $compiledConfig->setCorsMaxAge($configToMerge->getCorsMaxAge());
+        }
     }
 
     /**
@@ -282,10 +315,10 @@ class ApiResponseSubscriber implements EventSubscriberInterface
         // If this is sent to a JavaScript API client, the client's browser may pop up an HTTP Basic auth dialog.
         $response->headers->remove('WWW-Authenticate');
 
-        // Add CORS headers to all API requests.
-        $originRegex =$pathConfig->getCorsAllowOriginRegex();
-        if (false === $originRegex) {
-            // If the allow origin is false (the default) then no CORS headers are never added.
+        // Add CORS headers as needed.
+        $originRegex = $pathConfig->getCorsAllowOriginRegex();
+        if (null === $originRegex) {
+            // If the allow origin is null (the default) then CORS headers are never added.
             return;
         }
 
