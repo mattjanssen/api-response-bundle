@@ -59,7 +59,7 @@ The resulting response would have the 201 CREATED status.
 ## Error Response
 
 To respond with an error, throw any exception implementing the `ApiResponseExceptionInterface`. On the exception you can
-set the HTTP status code, the exception code, the exception message and the error data to be serialized into the 
+optionally set the HTTP status code, the exception code, the exception message and the error data to be serialized into the 
 response.
 
 ``` php
@@ -76,7 +76,7 @@ This would result in the following JSON return with a 404 HTTP status:
 {
     data: null,
     error: {
-        code: 404,
+        code: 100404,
         message: 'Could not find school.',
         errorData: {
             schoolId: 42
