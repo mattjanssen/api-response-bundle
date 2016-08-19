@@ -75,6 +75,13 @@ class ApiResponseGenerator
 
         $response = new Response($jsonString, $httpCode, ['Content-Type' => 'application/json']);
 
+        // Do not allow caching of API responses. This may be enhanced to be configurable in the future.
+        $response->headers->addCacheControlDirective('no-cache', true);
+        $response->headers->addCacheControlDirective('no-store', true);
+        $response->headers->addCacheControlDirective('must-revalidate', true);
+        $response->headers->set('Pragma', 'no-cache');
+        $response->headers->set('Expires', '0');
+        
         return $response;
     }
 
