@@ -15,6 +15,23 @@ Via Composer
 $ composer require mattjanssen/api-response-bundle
 ```
 
+## Enable
+
+Enable the bundle in the kernel:
+
+``` php
+<?php
+// app/AppKernel.php
+
+public function registerBundles()
+{
+    $bundles = [
+        // ...
+        new MattJanssen\ApiResponseBundle\ApiResponseBundle(),
+    ];
+}
+```
+
 ## Usage
 
 In your API controllers, just return whatever you want serialized in the response. The ApiResponseBundle takes care of
