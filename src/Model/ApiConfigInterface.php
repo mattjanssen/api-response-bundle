@@ -7,40 +7,41 @@ namespace MattJanssen\ApiResponseBundle\Model;
  *
  * @author Matt Janssen <matt@mattjanssen.com>
  */
-interface ApiPathConfigInterface
+interface ApiConfigInterface
 {
     /**
      * Get Serializer Adapter to Use
      *
-     * @return string
+     * @return string|null
      */
     public function getSerializer();
+
+
+    /**
+     * Get Serializer Groups to Use
+     *
+     * @return string[]|null
+     */
+    public function getGroups();
 
     /**
      * Get Regex that Origin Must Match Before Adding CORS Headers
      *
-     * @return string
+     * @return string|null
      */
     public function getCorsAllowOriginRegex();
 
     /**
-     * Check URL Against Configured Allowed Origin Regex
-     *
-     * @return string
-     */
-    public function isOriginAllowed($requestOrigin);
-
-    /**
      * Get List of "Allow" Headers to Include in CORS Response
      *
-     * @return string[]
+     * @return string[]|null
      */
     public function getCorsAllowHeaders();
 
     /**
      * Get Seconds to Allow Browser Caching of CORS Headers
      *
-     * @return int
+     * @return int|null
      */
     public function getCorsMaxAge();
 }

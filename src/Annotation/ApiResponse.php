@@ -2,10 +2,9 @@
 
 namespace MattJanssen\ApiResponseBundle\Annotation;
 
-use MattJanssen\ApiResponseBundle\Model\ApiPathConfigInterface;
-use MattJanssen\ApiResponseBundle\Model\ApiPathConfigTrait;
+use MattJanssen\ApiResponseBundle\Model\ApiConfigInterface;
+use MattJanssen\ApiResponseBundle\Model\ApiConfigTrait;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\ConfigurationAnnotation;
-use Symfony\Component\HttpFoundation\Response;
 
 /**
  * Annotation for Returning an API Response
@@ -18,9 +17,9 @@ use Symfony\Component\HttpFoundation\Response;
  *
  * @author Matt Janssen <matt@mattjanssen.com>
  */
-class ApiResponse extends ConfigurationAnnotation implements ApiPathConfigInterface
+class ApiResponse extends ConfigurationAnnotation implements ApiConfigInterface
 {
-    use ApiPathConfigTrait;
+    use ApiConfigTrait;
 
     /**
      * String used by the Framework Extra Bundle to indicate if this annotation is present on the Request.
@@ -30,18 +29,11 @@ class ApiResponse extends ConfigurationAnnotation implements ApiPathConfigInterf
     const ALIAS_NAME = 'api_response';
 
     /**
-     * Optional Groups Names for JMS Serializer
-     *
-     * @var string[]
-     */
-    private $groups = [];
-
-    /**
      * HTTP Code for Successful Response
      *
      * @var int
      */
-    private $httpCode = Response::HTTP_OK;
+    private $httpCode;
 
     /**
      * {@inheritdoc}
@@ -60,27 +52,7 @@ class ApiResponse extends ConfigurationAnnotation implements ApiPathConfigInterf
     }
 
     /**
-     * @return \string[]
-     */
-    public function getGroups()
-    {
-        return $this->groups;
-    }
-
-    /**
-     * @param \string[] $groups
-     *
-     * @return $this
-     */
-    public function setGroups($groups)
-    {
-        $this->groups = $groups;
-
-        return $this;
-    }
-
-    /**
-     * @return int
+     * @return int|null
      */
     public function getHttpCode()
     {

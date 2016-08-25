@@ -9,7 +9,7 @@ namespace MattJanssen\ApiResponseBundle\Model;
  *
  * @author Matt Janssen <matt@mattjanssen.com>
  */
-trait ApiPathConfigTrait
+trait ApiConfigTrait
 {
     /**
      * Serializer Adapter to Use
@@ -22,6 +22,13 @@ trait ApiPathConfigTrait
     private $serializer;
 
     /**
+     * Optional Groups Names for JMS Serializer
+     *
+     * @var string[]
+     */
+    private $groups;
+
+    /**
      * @var string
      */
     private $corsAllowOriginRegex;
@@ -29,12 +36,12 @@ trait ApiPathConfigTrait
     /**
      * @var string[]
      */
-    private $corsAllowHeaders = [];
+    private $corsAllowHeaders;
 
     /**
      * @var int
      */
-    private $corsMaxAge = 86400;
+    private $corsMaxAge; // One day in seconds.
 
     /**
      * {@inheritdoc}
@@ -59,21 +66,29 @@ trait ApiPathConfigTrait
     /**
      * {@inheritdoc}
      */
-    public function getCorsAllowOriginRegex()
+    public function getGroups()
     {
-        return $this->corsAllowOriginRegex;
+        return $this->groups;
+    }
+
+    /**
+     * @param string[] $groups
+     *
+     * @return $this
+     */
+    public function setGroups(array $groups = null)
+    {
+        $this->groups = $groups;
+
+        return $this;
     }
 
     /**
      * {@inheritdoc}
      */
-    function isOriginAllowed($requestOrigin)
+    public function getCorsAllowOriginRegex()
     {
-        if (null === $this->corsAllowOriginRegex) {
-            return false;
-        }
-
-        return preg_match('#' . str_replace('#', '\#', $this->corsAllowOriginRegex) . '#', $requestOrigin);
+        return $this->corsAllowOriginRegex;
     }
 
     /**
@@ -101,7 +116,7 @@ trait ApiPathConfigTrait
      *
      * @return $this
      */
-    public function setCorsAllowHeaders($corsAllowHeaders)
+    public function setCorsAllowHeaders(array $corsAllowHeaders = null)
     {
         $this->corsAllowHeaders = $corsAllowHeaders;
 

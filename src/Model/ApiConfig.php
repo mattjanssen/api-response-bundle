@@ -5,7 +5,7 @@ namespace MattJanssen\ApiResponseBundle\Model;
 /**
  * @author Matt Janssen <matt@mattjanssen.com>
  */
-class ApiPathConfig implements ApiPathConfigInterface
+class ApiConfig implements ApiConfigInterface
 {
-    use ApiPathConfigTrait;
+    use ApiConfigTrait;
 }

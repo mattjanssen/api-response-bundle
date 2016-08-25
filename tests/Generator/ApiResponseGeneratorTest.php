@@ -18,7 +18,7 @@ class ApiResponseGeneratorTest extends AppTestCase
     {
         $generator = AppMocker::getApiResponseGenerator();
 
-        $response = $generator->generateSuccessResponse($this->getTestCategory(), 200, [], Configuration::SERIALIZER_JSON_ENCODE);
+        $response = $generator->generateSuccessResponse($this->getTestCategory(), null, [], Configuration::SERIALIZER_JSON_ENCODE);
 
         self::assertJsonStringEqualsArray([
             'data' => $this->getTestCategoryDataArray(),
@@ -30,7 +30,7 @@ class ApiResponseGeneratorTest extends AppTestCase
     {
         $generator = AppMocker::getApiResponseGenerator();
 
-        $response = $generator->generateSuccessResponse($this->getTestCategory(), 200, ['relationships'], Configuration::SERIALIZER_JSON_GROUP_ENCODE);
+        $response = $generator->generateSuccessResponse($this->getTestCategory(), null, ['relationships'], Configuration::SERIALIZER_JSON_GROUP_ENCODE);
 
         self::assertJsonStringEqualsArray([
             'data' => $this->getTestCategoryDataArray(),
@@ -42,7 +42,7 @@ class ApiResponseGeneratorTest extends AppTestCase
     {
         $generator = AppMocker::getApiResponseGenerator();
 
-        $response = $generator->generateSuccessResponse($this->getTestCategory(), 200, ['relationships'], Configuration::SERIALIZER_JMS_SERIALIZER);
+        $response = $generator->generateSuccessResponse($this->getTestCategory(), null, ['relationships'], Configuration::SERIALIZER_JMS_SERIALIZER);
 
         self::assertJsonStringEqualsArray([
             'data' => $this->getTestCategoryDataArray(),
@@ -71,27 +71,27 @@ class ApiResponseGeneratorTest extends AppTestCase
     public function testSuccessResponseWithDefaultGroups()
     {
         $serializerMock = \Mockery::mock(SerializerAdapterInterface::class)->shouldReceive('serialize')->once()->with(ApiResponseResponseModel::class, [])->getMock();
-        $factoryMock = \Mockery::mock(SerializerAdapterFactory::class)->shouldReceive('createSerializerAdapter')->once()->with('default_serializer')->andReturn($serializerMock)->getMock();
-        $generator = new ApiResponseGenerator($factoryMock, 'default_serializer');
+        $factoryMock = \Mockery::mock(SerializerAdapterFactory::class)->shouldReceive('createSerializerAdapter')->once()->andReturn($serializerMock)->getMock();
+        $generator = new ApiResponseGenerator($factoryMock);
 
-        $generator->generateSuccessResponse('foobar', 200);
+        $generator->generateSuccessResponse('foobar');
     }
 
     public function testSuccessResponseWithSpecificGroups()
     {
         $groups = ['group_a', 'group_b'];
         $serializerMock = \Mockery::mock(SerializerAdapterInterface::class)->shouldReceive('serialize')->once()->with(ApiResponseResponseModel::class, $groups)->getMock();
-        $factoryMock = \Mockery::mock(SerializerAdapterFactory::class)->shouldReceive('createSerializerAdapter')->once()->with('default_serializer')->andReturn($serializerMock)->getMock();
-        $generator = new ApiResponseGenerator($factoryMock, 'default_serializer');
+        $factoryMock = \Mockery::mock(SerializerAdapterFactory::class)->shouldReceive('createSerializerAdapter')->once()->andReturn($serializerMock)->getMock();
+        $generator = new ApiResponseGenerator($factoryMock);
 
-        $generator->generateSuccessResponse('foobar', 200, $groups);
+        $generator->generateSuccessResponse('foobar', null, $groups);
     }
 
     public function testSuccessResponseWithDefaultSerializer()
     {
         $serializerMock = \Mockery::mock(SerializerAdapterInterface::class)->shouldReceive('serialize')->once()->getMock();
-        $factoryMock = \Mockery::mock(SerializerAdapterFactory::class)->shouldReceive('createSerializerAdapter')->once()->with('default_serializer')->andReturn($serializerMock)->getMock();
-        $generator = new ApiResponseGenerator($factoryMock, 'default_serializer');
+        $factoryMock = \Mockery::mock(SerializerAdapterFactory::class)->shouldReceive('createSerializerAdapter')->once()->with(Configuration::SERIALIZER_JSON_ENCODE)->andReturn($serializerMock)->getMock();
+        $generator = new ApiResponseGenerator($factoryMock);
 
         $generator->generateSuccessResponse('foobar');
     }
@@ -102,7 +102,7 @@ class ApiResponseGeneratorTest extends AppTestCase
         $factoryMock = \Mockery::mock(SerializerAdapterFactory::class)->shouldReceive('createSerializerAdapter')->once()->with('other_serializer')->andReturn($serializerMock)->getMock();
         $generator = new ApiResponseGenerator($factoryMock, 'default_serializer');
 
-        $generator->generateSuccessResponse('foobar', 200, [], 'other_serializer');
+        $generator->generateSuccessResponse('foobar', null, [], 'other_serializer');
     }
 
     public function testSuccessResponseContentType()

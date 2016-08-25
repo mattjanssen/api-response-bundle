@@ -3,10 +3,9 @@
 namespace MattJanssen\ApiResponseBundle\Subscriber;
 
 use MattJanssen\ApiResponseBundle\Annotation\ApiResponse;
+use MattJanssen\ApiResponseBundle\Compiler\ApiConfigCompiler;
 use MattJanssen\ApiResponseBundle\Exception\ApiResponseExceptionInterface;
 use MattJanssen\ApiResponseBundle\Generator\ApiResponseGenerator;
-use MattJanssen\ApiResponseBundle\Model\ApiPathConfig;
-use MattJanssen\ApiResponseBundle\Model\ApiPathConfigInterface;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -39,13 +38,11 @@ class ApiResponseSubscriber implements EventSubscriberInterface
     private $responseGenerator;
 
     /**
-     * API Path Configurations
+     * API Configuration Compiler
      *
-     * Each relative URL path has its own CORS configuration settings in this array.
-     *
-     * @var ApiPathConfig[]
+     * @var ApiConfigCompiler
      */
-    private $pathConfigs;
+    private $configCompiler;
 
     /**
      * Kernel's Debug Status
@@ -58,16 +55,16 @@ class ApiResponseSubscriber implements EventSubscriberInterface
      * Constructor
      *
      * @param ApiResponseGenerator $responseGenerator
-     * @param array $pathConfigs
+     * @param ApiConfigCompiler $configCompiler
      * @param bool $debug
      */
     public function __construct(
         ApiResponseGenerator $responseGenerator,
-        $pathConfigs,
+        ApiConfigCompiler $configCompiler,
         $debug
     ) {
         $this->responseGenerator = $responseGenerator;
-        $this->pathConfigs = $pathConfigs;
+        $this->configCompiler = $configCompiler;
         $this->debug = $debug;
     }
 
@@ -84,89 +81,6 @@ class ApiResponseSubscriber implements EventSubscriberInterface
     }
 
     /**
-     * @param Request $request
-     *
-     * @return ApiPathConfigInterface
-     */
-    private function getPathConfig(Request $request)
-    {
-        // This boolean is flipped only if the request matches a path as specified in config.yml,
-        // or if its controller action has the @ApiResponse() annotation.
-        $pathServed = false;
-
-        $compiledConfig = new ApiPathConfig();
-
-        $originPath = $request->getPathInfo();
-
-        // Create the ApiPathConfig based on the per-path options in config.yml.
-        foreach ($this->pathConfigs as $pathRegex => $pathConfig) {
-            if (!$pathConfig->isOriginAllowed($originPath)) {
-                continue;
-            }
-
-            $pathServed = true;
-
-            // Override defaults with any config.yml sepcifications.
-            if (null !== $pathConfig['cors_allow_origin_regex']) {
-                $compiledConfig->setCorsAllowOriginRegex($pathConfig['cors_allow_origin_regex']);
-            }
-            if (null !== $pathConfig['cors_allow_headers']) {
-                $compiledConfig->setCorsAllowHeaders($pathConfig['cors_allow_headers']);
-            }
-            if (null !== $pathConfig['cors_max_age']) {
-                $compiledConfig->setCorsMaxAge($pathConfig['cors_max_age']);
-            }
-
-            // After the first path match, don't process the rest.
-            break;
-        }
-
-        /** @var ApiResponse $attribute */
-        $attribute = $request->attributes->get('_' . ApiResponse::ALIAS_NAME);
-
-        // Override the ApiPathConfig properties with any optional @ApiResponse() annotation settings.
-        if (null !== $attribute) {
-            $pathServed = true;
-
-            // Override config.yml settings with any annotation specifications.
-            if (null !== $attribute->getCorsAllowOriginRegex()) {
-                $compiledConfig->setCorsAllowOriginRegex($attribute->getCorsAllowOriginRegex());
-            }
-            if (null !== $attribute->getCorsAllowHeaders()) {
-                $compiledConfig->setCorsAllowHeaders($attribute->getCorsAllowHeaders());
-            }
-            if (null !== $attribute->getCorsMaxAge()) {
-                $compiledConfig->setCorsMaxAge($attribute->getCorsMaxAge());
-            }
-        }
-
-        if ($pathServed) {
-            return $compiledConfig;
-        }
-
-        return null;
-    }
-
-    /**
-     * Merge Non-null Options from a Config into Another Config
-     *
-     * @param ApiPathConfig $compiledConfig
-     * @param ApiPathConfig $configToMerge
-     */
-    public function mergeConfig($compiledConfig, $configToMerge)
-    {
-        if (null !== $configToMerge->getCorsAllowOriginRegex()) {
-            $compiledConfig->setCorsAllowOriginRegex($configToMerge->getCorsAllowOriginRegex());
-        }
-        if (null !== $configToMerge->getCorsAllowHeaders()) {
-            $compiledConfig->setCorsAllowHeaders($configToMerge->getCorsAllowHeaders());
-        }
-        if (null !== $configToMerge->getCorsMaxAge()) {
-            $compiledConfig->setCorsMaxAge($configToMerge->getCorsMaxAge());
-        }
-    }
-
-    /**
      * Convert Returned Controller Data into a successful API Response
      *
      * @param GetResponseForControllerResultEvent $event
@@ -176,22 +90,22 @@ class ApiResponseSubscriber implements EventSubscriberInterface
     public function onKernelView(GetResponseForControllerResultEvent $event)
     {
         $request = $event->getRequest();
+        $data = $event->getControllerResult();
 
-        $pathConfig = $this->getPathConfig($request);
+        $pathConfig = $this->configCompiler->compileApiConfig($request);
         if (null === $pathConfig) {
+            // This is not an API endpoint.
             return;
         }
 
         /** @var ApiResponse $annotation */
         $annotation = $request->attributes->get('_' . ApiResponse::ALIAS_NAME);
 
-        $data = $event->getControllerResult();
-
         $response = $this->responseGenerator->generateSuccessResponse(
             $data,
-            $annotation ? $annotation->getHttpCode() : Response::HTTP_OK,
-            $annotation ? $annotation->getGroups() : [],
-            $annotation ? $annotation->getSerializer() : null
+            $annotation ? $annotation->getHttpCode() : null,
+            $pathConfig->getGroups(),
+            $pathConfig->getSerializer()
         );
 
         $event->setResponse($response);
@@ -209,19 +123,21 @@ class ApiResponseSubscriber implements EventSubscriberInterface
     {
         $request = $event->getRequest();
 
-        $pathConfig = $this->getPathConfig($request);
+        $pathConfig = $this->configCompiler->compileApiConfig($request);
         if (null === $pathConfig) {
+            // This is not an API endpoint.
             return;
         }
 
         $exception = $event->getException();
 
+        // Check if this is an OPTIONS request.
         if ($exception instanceof MethodNotAllowedHttpException && $request->getMethod() === Request::METHOD_OPTIONS) {
             // A MethodNotAllowedHttpException implies that the route exists but not for the requested HTTP method.
             // In the case of a an OPTIONS request (CORS preflight) we send a 200 OK instead of a 404 Not Found.
-            $response = $this->responseGenerator->generateSuccessResponse([]);
+            $response = $this->responseGenerator->generateSuccessResponse();
 
-            // Explicitly set the 200 OK status code as a specical header that the HttpKernel doesn't change it.
+            // Explicitly set the 200 OK status code as the X-Status-Code header so the HttpKernel allows the 200.
             /** @see Symfony\Component\HttpKernel\HttpKernel::handleException() */
             $response->headers->set('X-Status-Code', Response::HTTP_OK);
 
@@ -297,6 +213,11 @@ class ApiResponseSubscriber implements EventSubscriberInterface
     }
 
     /**
+     * Modify Header on all API Responses
+     *
+     * This takes place after onKernelException and onKernelView events.
+     * It takes care of any WWW-Authenticate and CORS headers for routes/actions that handle API requests.
+     *
      * @param FilterResponseEvent $event
      *
      * @throws \Exception
@@ -306,10 +227,19 @@ class ApiResponseSubscriber implements EventSubscriberInterface
         $request = $event->getRequest();
         $response = $event->getResponse();
 
-        $pathConfig = $this->getPathConfig($request);
+        $pathConfig = $this->configCompiler->compileApiConfig($request);
         if (null === $pathConfig) {
+            // This is not an API response.
             return;
         }
+
+        // Do not allow caching of API responses. This may be enhanced to be configurable in the future.
+        $response->headers->addCacheControlDirective('no-cache');
+        $response->headers->addCacheControlDirective('no-store');
+        $response->headers->addCacheControlDirective('max-age', '0');
+        $response->headers->addCacheControlDirective('must-revalidate');
+        $response->headers->set('Pragma', 'no-cache');
+        $response->headers->set('Expires', 'Mon, 01 Jan 1990 00:00:00 GMT');
 
         // Remove the WWW-Authenticate header that may have been added by the firewall system.
         // If this is sent to a JavaScript API client, the client's browser may pop up an HTTP Basic auth dialog.
