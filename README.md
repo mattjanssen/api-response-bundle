@@ -2,6 +2,7 @@
 
 [![Latest Version on Packagist][ico-version]][link-packagist]
 [![Software License][ico-license]](LICENSE.md)
+[![Build Status](https://travis-ci.org/mattjanssen/api-response-bundle.svg?branch=master)](https://travis-ci.org/mattjanssen/api-response-bundle)
 
 `mattjanssen/api-response-bundle` is a slightly-opinionated Symfony bundle for transforming controller action returns
 and exceptions into a standardized JSON response. The serializer and CORS headers can be configured globally, per path,
