@@ -74,7 +74,8 @@ class ApiConfigCompiler
 
         // Try to match the request origin to a path in the config.yml.
         $originPath = $request->getPathInfo();
-        foreach ($this->pathConfigs as $pathRegex => $pathConfig) {
+        foreach ($this->pathConfigs as $pathConfig) {
+            $pathRegex = $pathConfig['pattern'];
             if (!preg_match('#' . str_replace('#', '\#', $pathRegex) . '#', $originPath)) {
                 // No path match.
                 continue;
