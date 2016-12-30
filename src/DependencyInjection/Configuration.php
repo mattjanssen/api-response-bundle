@@ -14,6 +14,7 @@ use Symfony\Component\Config\Definition\ConfigurationInterface;
  */
 class Configuration implements ConfigurationInterface
 {
+    const SERIALIZER_ARRAY = 'array';
     const SERIALIZER_JSON_ENCODE = 'json_encode';
     const SERIALIZER_JSON_GROUP_ENCODE = 'json_group_encode';
     const SERIALIZER_JMS_SERIALIZER = 'jms_serializer';
@@ -56,6 +57,7 @@ class Configuration implements ConfigurationInterface
         return $nodeBuilder
             ->enumNode('serializer')
                 ->values([
+                    self::SERIALIZER_ARRAY,
                     self::SERIALIZER_JSON_ENCODE,
                     self::SERIALIZER_JSON_GROUP_ENCODE,
                     self::SERIALIZER_JMS_SERIALIZER,

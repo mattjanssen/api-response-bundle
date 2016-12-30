@@ -48,6 +48,10 @@ class SerializerAdapterFactory
     public function createSerializerAdapter($serializerName)
     {
         switch ($serializerName) {
+            case Configuration::SERIALIZER_ARRAY:
+                $serializerAdapter = new Adapter\ArraySerializerAdapter();
+                break;
+
             case Configuration::SERIALIZER_JSON_ENCODE:
                 $serializerAdapter = new Adapter\JsonEncodeSerializerAdapter();
                 break;
