@@ -18,7 +18,7 @@ class ArraySerializerAdapter implements SerializerAdapterInterface
     /**
      * {@inheritdoc}
      */
-    public function serialize($data, array $groups = []): string
+    public function serialize($data, array $groups = [])
     {
         $jsonString = json_encode($this->serializedMixed($data, $groups));
 
