@@ -42,6 +42,7 @@ class Configuration implements ConfigurationInterface
                     ->useAttributeAsKey('name')
                     ->prototype('array')
                         ->children()
+                        ->scalarNode('pattern')->end()
         );
 
         return $treeBuilder;
