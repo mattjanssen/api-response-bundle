@@ -18,6 +18,7 @@ services:
         arguments:
             - "@api_response.generator.api_response"
             - "@api_response.compiler.api_config"
+            - "@logger"
             - %kernel.debug%
 
     # Factory
