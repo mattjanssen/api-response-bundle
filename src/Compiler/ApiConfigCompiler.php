@@ -5,6 +5,7 @@ namespace MattJanssen\ApiResponseBundle\Compiler;
 use MattJanssen\ApiResponseBundle\Annotation\ApiResponse;
 use MattJanssen\ApiResponseBundle\Model\ApiConfig;
 use MattJanssen\ApiResponseBundle\Model\ApiConfigInterface;
+use MattJanssen\ApiResponseBundle\Model\ApiPathConfig;
 use Symfony\Component\HttpFoundation\Request;
 
 /**
@@ -26,7 +27,7 @@ class ApiConfigCompiler
      *
      * Each relative URL path has its own CORS configuration settings in this array.
      *
-     * @var ApiConfig[]
+     * @var ApiPathConfig[]
      */
     private $pathConfigs;
 
@@ -43,8 +44,8 @@ class ApiConfigCompiler
         $defaultConfig = $this->generateApiConfig($defaultConfigArray);
 
         $pathConfigs = [];
-        foreach ($pathConfigArrays as $path => $configArray) {
-            $pathConfigs[$path] = $this->generateApiConfig($configArray);
+        foreach ($pathConfigArrays as $configArray) {
+            $pathConfigs[] = $this->generateApiPathConfig($configArray);
         }
 
         $this->defaultConfig = $defaultConfig;
@@ -74,7 +75,8 @@ class ApiConfigCompiler
 
         // Try to match the request origin to a path in the config.yml.
         $originPath = $request->getPathInfo();
-        foreach ($this->pathConfigs as $pathRegex => $pathConfig) {
+        foreach ($this->pathConfigs as $pathConfig) {
+            $pathRegex = $pathConfig->getPattern();
             if (!preg_match('#' . str_replace('#', '\#', $pathRegex) . '#', $originPath)) {
                 // No path match.
                 continue;
@@ -113,8 +115,14 @@ class ApiConfigCompiler
      * @param ApiConfig $compiledConfig
      * @param ApiConfigInterface $configToMerge
      */
-    private function mergeConfig($compiledConfig, $configToMerge)
+    private function mergeConfig(ApiConfig $compiledConfig, ApiConfigInterface $configToMerge)
     {
+        if (null !== $configToMerge->getSerializer()) {
+            $compiledConfig->setSerializer($configToMerge->getSerializer());
+        }
+        if (null !== $configToMerge->getGroups()) {
+            $compiledConfig->setGroups($configToMerge->getGroups());
+        }
         if (null !== $configToMerge->getCorsAllowOriginRegex()) {
             $compiledConfig->setCorsAllowOriginRegex($configToMerge->getCorsAllowOriginRegex());
         }
@@ -133,8 +141,38 @@ class ApiConfigCompiler
      */
     private function generateApiConfig(array $configArray)
     {
+        $apiConfig = new ApiConfig();
+
+        $this->applyApiConfig($configArray, $apiConfig);
+
+        return $apiConfig;
+    }
+
+    /**
+     * @param array $configArray
+     *
+     * @return ApiConfig $this
+     */
+    private function generateApiPathConfig(array $configArray)
+    {
+        $apiPathConfig = new ApiPathConfig();
+
+        $this->applyApiConfig($configArray, $apiPathConfig);
+
         // @TODO Use PHP 7 null coalescing operator.
-        return (new ApiConfig())
+        $apiPathConfig->setPattern(isset($configArray['pattern']) ? $configArray['pattern'] : null);
+
+        return $apiPathConfig;
+    }
+
+    /**
+     * @param array $configArray
+     * @param ApiConfig $apiConfig
+     */
+    private function applyApiConfig(array $configArray, ApiConfig $apiConfig)
+    {
+        // @TODO Use PHP 7 null coalescing operator.
+        $apiConfig
             ->setSerializer(isset($configArray['serializer']) ? $configArray['serializer'] : null)
             ->setGroups(isset($configArray['serialize_groups']) ? $configArray['serialize_groups'] : null)
             ->setCorsAllowHeaders(isset($configArray['cors_allow_headers']) ? $configArray['cors_allow_headers'] : null)

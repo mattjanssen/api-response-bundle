@@ -2,6 +2,8 @@
 
 namespace MattJanssen\ApiResponseBundle\Model;
 
+use MattJanssen\ApiResponseBundle\Serializer\ArraySerializable;
+
 /**
  * API Response Response Model
  *
@@ -10,7 +12,7 @@ namespace MattJanssen\ApiResponseBundle\Model;
  *
  * @author Matt Janssen <matt@mattjanssen.com>
  */
-class ApiResponseResponseModel implements \JsonSerializable
+class ApiResponseResponseModel implements \JsonSerializable, ArraySerializable
 {
     /**
      * Serializable API Response Data
@@ -29,12 +31,20 @@ class ApiResponseResponseModel implements \JsonSerializable
     /**
      * {@inheritdoc}
      */
-    function jsonSerialize()
+    public function jsonSerialize(): array
     {
         return [
             'data' => $this->data,
             'error' => $this->error,
         ];
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function arraySerialize(array $group = [])
+    {
+        return $this->jsonSerialize();
     }
 
     /**

@@ -14,6 +14,7 @@ use Symfony\Component\Config\Definition\ConfigurationInterface;
  */
 class Configuration implements ConfigurationInterface
 {
+    const SERIALIZER_ARRAY = 'array';
     const SERIALIZER_JSON_ENCODE = 'json_encode';
     const SERIALIZER_JSON_GROUP_ENCODE = 'json_group_encode';
     const SERIALIZER_JMS_SERIALIZER = 'jms_serializer';
@@ -27,47 +28,50 @@ class Configuration implements ConfigurationInterface
         $rootNode = $treeBuilder->root('api_response');
 
         $this->buildConfigNode(
-            $rootNode
-                ->children()
-                    ->arrayNode('defaults')
+            $rootNode->children()
+                ->arrayNode('defaults')
+                    ->children()
+                        ->arrayNode('pattern')
+                            ->prototype('scalar')->isRequired()->end()
+                        ->end()
         );
 
         $this->buildConfigNode(
-            $rootNode
-                ->children()
-                    ->arrayNode('paths')
-                        ->normalizeKeys(false)
-                        ->prototype('array')
+            $rootNode->children()
+                ->arrayNode('paths')
+                    ->useAttributeAsKey('name')
+                    ->prototype('array')
+                        ->children()
+                        ->scalarNode('pattern')->end()
         );
 
         return $treeBuilder;
     }
 
     /**
-     * @param ArrayNodeDefinition $arrayNode
+     * @param NodeBuilder $nodeBuilder
      *
      * @return ArrayNodeDefinition
      */
-    private function buildConfigNode(ArrayNodeDefinition $arrayNode)
+    private function buildConfigNode(NodeBuilder $nodeBuilder)
     {
-        return $arrayNode
-            ->children()
-                ->enumNode('serializer')
-                    ->values([
-                        self::SERIALIZER_JSON_ENCODE,
-                        self::SERIALIZER_JSON_GROUP_ENCODE,
-                        self::SERIALIZER_JMS_SERIALIZER,
-                    ])
-                ->end()
-                ->arrayNode('serialize_groups')
-                    ->prototype('scalar')->end()
-                ->end()
-                ->scalarNode('cors_allow_origin_regex')->end()
-                ->arrayNode('cors_allow_headers')
-                    ->prototype('scalar')->end()
-                ->end()
-                ->integerNode('cors_max_age')->end()
+        return $nodeBuilder
+            ->enumNode('serializer')
+                ->values([
+                    self::SERIALIZER_ARRAY,
+                    self::SERIALIZER_JSON_ENCODE,
+                    self::SERIALIZER_JSON_GROUP_ENCODE,
+                    self::SERIALIZER_JMS_SERIALIZER,
+                ])
             ->end()
+            ->arrayNode('serialize_groups')
+                ->prototype('scalar')->end()
+            ->end()
+            ->scalarNode('cors_allow_origin_regex')->end()
+            ->arrayNode('cors_allow_headers')
+                ->prototype('scalar')->end()
+            ->end()
+            ->integerNode('cors_max_age')->end()
         ;
     }
 }

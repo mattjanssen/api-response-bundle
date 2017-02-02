@@ -16,7 +16,6 @@ interface ApiConfigInterface
      */
     public function getSerializer();
 
-
     /**
      * Get Serializer Groups to Use
      *

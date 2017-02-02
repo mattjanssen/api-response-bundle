@@ -33,6 +33,25 @@ public function registerBundles()
 }
 ```
 
+## Configure
+
+``` yml
+api_response:
+    defaults:
+        serializer: json_encode
+        serialize_groups: []
+        cors_allow_origin_regex: https://.*\.mydomain\.com
+        cors_allow_headers: Authorization, Content-Type
+        cors_max_age: 86400
+    paths:
+        somename:
+            pattern: ^/api/v1/
+            serializer: jms_serializer
+        othername:
+            pattern: ^/api/v2/
+            cors_allow_origin_regex: https://.*\.(mydomain|theirdomain)\.com
+```
+
 ## Usage
 
 In your API controllers, just return whatever you want serialized in the response. The ApiResponseBundle takes care of
