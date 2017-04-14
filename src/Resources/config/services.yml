@@ -1,12 +1,8 @@
 services:
-    # Seralizer Adapter
-    api_response.serializer_adapter:
-        class: MattJanssen\ApiResponseBundle\Serializer\Adapter\SerializerAdapterInterface
-        synthetic: true
-
     # Compiler
     api_response.compiler.api_config: # Generated in ApiResponseExtension compile pass.
         class: MattJanssen\ApiResponseBundle\Compiler\ApiConfigCompiler
+        public: false
         arguments:
             - %api_response.defaults%
             - %api_response.paths%
@@ -24,6 +20,7 @@ services:
     # Factory
     api_response.factory.serializer_adapter:
         class: MattJanssen\ApiResponseBundle\Factory\SerializerAdapterFactory
+        public: false
         arguments:
             - "@service_container"
 
@@ -31,4 +28,6 @@ services:
     api_response.generator.api_response:
         class: MattJanssen\ApiResponseBundle\Generator\ApiResponseGenerator
         arguments:
+            - "@request_stack"
+            - "@api_response.compiler.api_config"
             - "@api_response.factory.serializer_adapter"

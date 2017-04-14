@@ -13,6 +13,11 @@ class ApiPathConfig extends ApiConfig
     private $pattern;
 
     /**
+     * @var string
+     */
+    private $prefix;
+
+    /**
      * @return string
      */
     public function getPattern()
@@ -28,6 +33,26 @@ class ApiPathConfig extends ApiConfig
     public function setPattern($pattern)
     {
         $this->pattern = $pattern;
+
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getPrefix()
+    {
+        return $this->prefix;
+    }
+
+    /**
+     * @param string $prefix
+     *
+     * @return $this
+     */
+    public function setPrefix($prefix)
+    {
+        $this->prefix = $prefix;
 
         return $this;
     }

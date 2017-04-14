@@ -30,17 +30,19 @@ class JmsSerializerAdapter implements SerializerAdapterInterface
     /**
      * {@inheritdoc}
      */
-    public function serialize($data, array $groups = [])
+    public function serialize($data, array $groups = null)
     {
         $context = SerializationContext::create();
 
         // Serialize null properties.
         $context->setSerializeNull(true);
 
-        // Always serialize the default groups. This cannot be disabled.
-        $groups[] = 'Default';
+        if ($groups !== null) {
+            // Always serialize the default groups. This cannot be disabled.
+            $groups[] = 'Default';
 
-        $context->setGroups($groups);
+            $context->setGroups($groups);
+        }
 
         $jsonString = $this->jmsSerializer->serialize($data, 'json', $context);
 

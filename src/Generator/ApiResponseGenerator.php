@@ -2,10 +2,12 @@
 
 namespace MattJanssen\ApiResponseBundle\Generator;
 
+use MattJanssen\ApiResponseBundle\Compiler\ApiConfigCompiler;
 use MattJanssen\ApiResponseBundle\DependencyInjection\Configuration;
 use MattJanssen\ApiResponseBundle\Factory\SerializerAdapterFactory;
 use MattJanssen\ApiResponseBundle\Model\ApiResponseErrorModel;
 use MattJanssen\ApiResponseBundle\Model\ApiResponseResponseModel;
+use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
@@ -16,6 +18,16 @@ use Symfony\Component\HttpFoundation\Response;
 class ApiResponseGenerator
 {
     /**
+     * @var RequestStack
+     */
+    private $requestStack;
+
+    /**
+     * @var ApiConfigCompiler
+     */
+    private $configCompiler;
+
+    /**
      * Serializer Adapter Factory
      *
      * @var SerializerAdapterFactory
@@ -25,11 +37,17 @@ class ApiResponseGenerator
     /**
      * Constructor
      *
+     * @param RequestStack $requestStack
+     * @param ApiConfigCompiler $configCompiler
      * @param SerializerAdapterFactory $serializerAdapterFactory
      */
     public function __construct(
+        RequestStack $requestStack,
+        ApiConfigCompiler $configCompiler,
         SerializerAdapterFactory $serializerAdapterFactory
     ) {
+        $this->requestStack = $requestStack;
+        $this->configCompiler = $configCompiler;
         $this->serializerAdapterFactory = $serializerAdapterFactory;
     }
 
@@ -39,8 +57,8 @@ class ApiResponseGenerator
      * Defaults to json_encode serializer.
      *
      * @param mixed $data
-     * @param int $httpCode
-     * @param array $serializeGroups
+     * @param int|null $httpCode
+     * @param string[]|null $serializeGroups
      * @param string|null $serializerName Name of serializer to use instead of the default.
      *
      * @return Response
@@ -52,17 +70,23 @@ class ApiResponseGenerator
         array $serializeGroups = null,
         $serializerName = null
     ) {
-        // Set defaults.
-        if (null === $httpCode) {
+        if ($httpCode === null) {
             $httpCode = Response::HTTP_OK;
         }
 
-        if (null === $serializeGroups) {
-            $serializeGroups = [];
+        $request = $this->requestStack->getMasterRequest();
+        $pathConfig = $request ? $this->configCompiler->compileApiConfig($request) : null;
+
+        if ($serializeGroups === null && $pathConfig !== null) {
+            $serializeGroups = $pathConfig->getGroups();
         }
 
-        if (null === $serializerName) {
-            $serializerName = Configuration::SERIALIZER_JSON_ENCODE;
+        if ($serializerName === null) {
+            if  ($pathConfig !== null) {
+                $serializerName = $pathConfig->getSerializer();
+            } else {
+                $serializerName = Configuration::SERIALIZER_JSON_ENCODE;
+            }
         }
 
         $serializerAdapter = $this->serializerAdapterFactory->createSerializerAdapter($serializerName);
@@ -83,7 +107,7 @@ class ApiResponseGenerator
      * This assumes the json_encode serializer.
      *
      * @param int $httpCode
-     * @param int $errorCode
+     * @param string $errorCode
      * @param string|null $errorTitle
      * @param mixed|null $errorData
      *

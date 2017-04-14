@@ -14,7 +14,7 @@ trait ApiConfigTrait
     /**
      * Serializer Adapter to Use
      *
-     * One of the Configuration::SERIALIZER_* constants.
+     * One of the Configuration::SERIALIZER_* constants or a service name.
      * @see MattJanssen\ApiResponseBundle\DependencyInjection\Configuration::SERIALIZER_JSON_ENCODE
      *
      * @var string
@@ -22,9 +22,9 @@ trait ApiConfigTrait
     private $serializer;
 
     /**
-     * Optional Groups Names for JMS Serializer
+     * Optional Groups Names for Serializer
      *
-     * @var string[]
+     * @var string[]|null
      */
     private $groups;
 
@@ -72,7 +72,7 @@ trait ApiConfigTrait
     }
 
     /**
-     * @param string[] $groups
+     * @param string[]|null $groups
      *
      * @return $this
      */

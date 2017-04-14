@@ -3,10 +3,12 @@
 namespace MattJanssen\ApiResponseBundle\Test;
 
 use JMS\Serializer\SerializerBuilder;
+use MattJanssen\ApiResponseBundle\Compiler\ApiConfigCompiler;
 use MattJanssen\ApiResponseBundle\DependencyInjection\Configuration;
 use MattJanssen\ApiResponseBundle\Factory\SerializerAdapterFactory;
 use MattJanssen\ApiResponseBundle\Generator\ApiResponseGenerator;
 use Symfony\Component\DependencyInjection\Container;
+use Symfony\Component\HttpFoundation\RequestStack;
 
 class AppMocker
 {
@@ -33,8 +35,11 @@ class AppMocker
         return new SerializerAdapterFactory(self::getContainerForFactory());
     }
 
-    public static function getApiResponseGenerator($serializer = Configuration::SERIALIZER_JSON_ENCODE)
+    public static function getApiResponseGenerator()
     {
-        return  new ApiResponseGenerator(self::getAdapterFactory(), $serializer);
+        $requestStack = new RequestStack();
+        $configCompiler = new ApiConfigCompiler([], []);
+
+        return new ApiResponseGenerator($requestStack, $configCompiler, self::getAdapterFactory());
     }
 }

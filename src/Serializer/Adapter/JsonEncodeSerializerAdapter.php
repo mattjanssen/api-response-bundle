@@ -14,7 +14,7 @@ class JsonEncodeSerializerAdapter implements SerializerAdapterInterface
     /**
      * {@inheritdoc}
      */
-    public function serialize($data, array $groups = [])
+    public function serialize($data, array $groups = null)
     {
         $jsonString = json_encode($data);
 

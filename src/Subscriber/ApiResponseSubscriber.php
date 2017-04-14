@@ -277,7 +277,8 @@ class ApiResponseSubscriber implements EventSubscriberInterface
             return;
         }
 
-        if (!preg_match('#' . str_replace('#', '\#', $originRegex) . '#', $requestOrigin)) {
+        // @TODO BC: Wrap the regex in ^...$.
+        if ($originRegex !== '.*' && !preg_match('#' . str_replace('#', '\#', $originRegex) . '#', $requestOrigin)) {
             // If the requesting origin doesn't match the allowed origin regex then no CORS headers are added.
             return;
         }

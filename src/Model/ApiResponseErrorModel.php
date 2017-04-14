@@ -12,7 +12,7 @@ class ApiResponseErrorModel implements \JsonSerializable
     /**
      * Application-specific API Error Code
      *
-     * @var int
+     * @var string
      */
     private $code;
 
@@ -33,7 +33,7 @@ class ApiResponseErrorModel implements \JsonSerializable
     /**
      * {@inheritdoc}
      */
-    function jsonSerialize()
+    public function jsonSerialize()
     {
         return [
             'code' => $this->code,
@@ -45,7 +45,7 @@ class ApiResponseErrorModel implements \JsonSerializable
     /**
      * Set the API Error Code
      *
-     * @return int
+     * @return string
      */
     public function getCode()
     {
@@ -55,7 +55,7 @@ class ApiResponseErrorModel implements \JsonSerializable
     /**
      * Get the API Error Code
      *
-     * @param int $code
+     * @param string $code
      *
      * @return $this
      */
