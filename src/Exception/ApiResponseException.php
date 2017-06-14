@@ -3,6 +3,7 @@
 namespace MattJanssen\ApiResponseBundle\Exception;
 
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 
 /**
  * Exception for a Failed API Response
@@ -13,7 +14,7 @@ use Symfony\Component\HttpFoundation\Response;
  *
  * @author Matt Janssen <matt@mattjanssen.com>
  */
-class ApiResponseException extends \Exception implements ApiResponseExceptionInterface
+class ApiResponseException extends \Exception implements HttpExceptionInterface, ApiResponseExceptionInterface
 {
     /**
      * HTTP Response Status Code
@@ -92,5 +93,25 @@ class ApiResponseException extends \Exception implements ApiResponseExceptionInt
     public function setErrorData($errorData)
     {
         $this->errorData = $errorData;
+    }
+
+    /**
+     * Returns the status code.
+     *
+     * @return int An HTTP response status code
+     */
+    public function getStatusCode()
+    {
+        return $this->getHttpStatusCode();
+    }
+
+    /**
+     * Returns response headers.
+     *
+     * @return array Response headers
+     */
+    public function getHeaders()
+    {
+        return [];
     }
 }
