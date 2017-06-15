@@ -6,6 +6,7 @@ use MattJanssen\ApiResponseBundle\Annotation\ApiResponse;
 use MattJanssen\ApiResponseBundle\Compiler\ApiConfigCompiler;
 use MattJanssen\ApiResponseBundle\Exception\ApiResponseExceptionInterface;
 use MattJanssen\ApiResponseBundle\Generator\ApiResponseGenerator;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -45,6 +46,13 @@ class ApiResponseSubscriber implements EventSubscriberInterface
     private $configCompiler;
 
     /**
+     * PSR Logger
+     *
+     * @var LoggerInterface
+     */
+    private $logger;
+
+    /**
      * Kernel's Debug Status
      *
      * @var bool
@@ -56,15 +64,18 @@ class ApiResponseSubscriber implements EventSubscriberInterface
      *
      * @param ApiResponseGenerator $responseGenerator
      * @param ApiConfigCompiler $configCompiler
+     * @param LoggerInterface $logger
      * @param bool $debug
      */
     public function __construct(
         ApiResponseGenerator $responseGenerator,
         ApiConfigCompiler $configCompiler,
+        LoggerInterface $logger,
         $debug
     ) {
         $this->responseGenerator = $responseGenerator;
         $this->configCompiler = $configCompiler;
+        $this->logger = $logger;
         $this->debug = $debug;
     }
 
@@ -210,6 +221,14 @@ class ApiResponseSubscriber implements EventSubscriberInterface
         );
 
         $event->setResponse($response);
+
+        if ($httpCode >= Response::HTTP_INTERNAL_SERVER_ERROR) {
+            // Log exceptions that result in a 5xx server response.
+            $this->logger->critical(
+                sprintf('API Exception %s: "%s" at %s line %s', get_class($exception), $exception->getMessage(), $exception->getFile(), $exception->getLine()),
+                ['exception' => $exception]
+            );
+        }
     }
 
     /**
@@ -258,7 +277,8 @@ class ApiResponseSubscriber implements EventSubscriberInterface
             return;
         }
 
-        if (!preg_match('#' . str_replace('#', '\#', $originRegex) . '#', $requestOrigin)) {
+        // @TODO BC: Wrap the regex in ^...$.
+        if ($originRegex !== '.*' && !preg_match('#' . str_replace('#', '\#', $originRegex) . '#', $requestOrigin)) {
             // If the requesting origin doesn't match the allowed origin regex then no CORS headers are added.
             return;
         }

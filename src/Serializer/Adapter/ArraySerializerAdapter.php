@@ -18,7 +18,7 @@ class ArraySerializerAdapter implements SerializerAdapterInterface
     /**
      * {@inheritdoc}
      */
-    public function serialize($data, array $groups = [])
+    public function serialize($data, array $groups = null)
     {
         $jsonString = json_encode($this->serializedMixed($data, $groups));
 
@@ -40,11 +40,11 @@ class ArraySerializerAdapter implements SerializerAdapterInterface
      * Similar to json_encode's traversal, but uses ArraySerializable interface.
      *
      * @param mixed $data
-     * @param string[] $groups
+     * @param string[]|null $groups
      *
      * @return \stdClass|mixed[] Serializable array for json_encode()
      */
-    private function serializedMixed($data, array $groups)
+    private function serializedMixed($data, array $groups = null)
     {
         if (is_array($data)) {
             return $this->serializeArray($data, $groups);
@@ -68,11 +68,11 @@ class ArraySerializerAdapter implements SerializerAdapterInterface
      * Map Array Back to Recursive Serialize Function
      *
      * @param mixed[] $array
-     * @param string[] $groups
+     * @param string[]|null $groups
      *
      * @return mixed[]
      */
-    private function serializeArray(array $array, array $groups)
+    private function serializeArray(array $array, array $groups = null)
     {
         return array_map(
             function ($value) use ($groups) {

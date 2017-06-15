@@ -13,9 +13,9 @@ interface SerializerAdapterInterface
      * Serialize Response Data into a JSON String
      *
      * @param mixed $data
-     * @param string[] $groups
+     * @param string[]|null $groups
      *
      * @return string
      */
-    public function serialize($data, array $groups = []);
+    public function serialize($data, array $groups = null);
 }

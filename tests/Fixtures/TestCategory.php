@@ -49,7 +49,7 @@ class TestCategory implements JsonGroupSerializable
      */
     private $children = [];
 
-    function jsonSerialize()
+    public function jsonSerialize()
     {
         return [
             'id' => $this->getId(),
@@ -59,14 +59,14 @@ class TestCategory implements JsonGroupSerializable
         ];
     }
 
-    public function jsonGroupSerialize(array $groups = [])
+    public function jsonGroupSerialize(array $groups = null)
     {
         $data = [
             'id' => $this->getId(),
             'name' => $this->getName(),
         ];
 
-        if (array_intersect($groups, ['relationships'])) {
+        if ($groups !== null && array_intersect($groups, ['relationships'])) {
             $data['parent'] = $this->getParentId();
             $data['children'] = $this->getChildrenIds();
         }

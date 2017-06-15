@@ -18,7 +18,7 @@ class JsonGroupEncodeSerializerAdapter implements SerializerAdapterInterface
     /**
      * {@inheritdoc}
      */
-    public function serialize($data, array $groups = [])
+    public function serialize($data, array $groups = null)
     {
         $jsonString = json_encode($this->groupSerialize($data, $groups));
 
@@ -40,11 +40,11 @@ class JsonGroupEncodeSerializerAdapter implements SerializerAdapterInterface
      * Re-implementation of json_encode's traversal, but uses JsonGroupSerializable interface first.
      *
      * @param mixed $data
-     * @param string[] $groups
+     * @param string[]|null $groups
      *
      * @return \stdClass|mixed[] Serializable array for json_encode()
      */
-    private function groupSerialize($data, array $groups)
+    private function groupSerialize($data, array $groups = null)
     {
         if (is_array($data)) {
             return $this->serializeArray($data, $groups);
@@ -72,11 +72,11 @@ class JsonGroupEncodeSerializerAdapter implements SerializerAdapterInterface
      * Map Array Back to Recursive Group Serialize Function
      *
      * @param mixed[] $array
-     * @param string[] $groups
+     * @param string[]|null $groups
      *
      * @return mixed[]
      */
-    private function serializeArray(array $array, $groups)
+    private function serializeArray(array $array, array $groups = null)
     {
         return array_map(
             function ($value) use ($groups) {

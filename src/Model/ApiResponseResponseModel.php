@@ -31,7 +31,7 @@ class ApiResponseResponseModel implements \JsonSerializable, ArraySerializable
     /**
      * {@inheritdoc}
      */
-    public function jsonSerialize(): array
+    public function jsonSerialize()
     {
         return [
             'data' => $this->data,

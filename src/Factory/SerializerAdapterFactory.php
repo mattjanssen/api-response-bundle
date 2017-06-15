@@ -3,7 +3,7 @@
 namespace MattJanssen\ApiResponseBundle\Factory;
 
 use MattJanssen\ApiResponseBundle\DependencyInjection\Configuration;
-use MattJanssen\ApiResponseBundle\Serializer\Adapter as Adapter;
+use MattJanssen\ApiResponseBundle\Serializer\Adapter;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -66,7 +66,17 @@ class SerializerAdapterFactory
                 break;
 
             default:
-                throw new \RuntimeException('Unrecognized serializer configured.');
+                if ($this->container->has($serializerName)) {
+                    $serializerAdapter = $this->container->get($serializerName);
+                    if (!$serializerAdapter instanceof Adapter\SerializerAdapterInterface) {
+                        throw new \RuntimeException(sprintf(
+                            'Serializer adapter "%s" does not implement SerializerAdapterInterface.',
+                            $serializerName
+                        ));
+                    }
+                } else {
+                    throw new \RuntimeException(sprintf('Unrecognized serializer "%s".', $serializerName));
+                }
         }
 
         return $serializerAdapter;

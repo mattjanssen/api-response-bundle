@@ -41,16 +41,19 @@ api_response:
         serializer: json_encode
         serialize_groups: []
         cors_allow_origin_regex: https://.*\.mydomain\.com
-        cors_allow_headers: Authorization, Content-Type
+        cors_allow_headers: [Authorization, Content-Type]
         cors_max_age: 86400
     paths:
         somename:
-            pattern: ^/api/v1/
+            prefix: /api/v1/
             serializer: jms_serializer
         othername:
-            pattern: ^/api/v2/
-            cors_allow_origin_regex: https://.*\.(mydomain|theirdomain)\.com
+            pattern: ^/api/v[2-4]/
+            cors_allow_origin_regex: .*
 ```
+
+The serializer can be empty, 'array', 'json_encode', 'json_group_encode', 'jms_serializer',
+or the name of a service which must implement the SerializerAdapterInterface. It defaults to 'json_encode'.
 
 ## Usage
 

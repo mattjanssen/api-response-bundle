@@ -12,8 +12,8 @@ interface ArraySerializable
     /**
      * Return Array
      *
-     * @param array $group
+     * @param string[]|null $group
      * @return string[]
      */
-    public function arraySerialize(array $group = []);
+    public function arraySerialize(array $group = null);
 }

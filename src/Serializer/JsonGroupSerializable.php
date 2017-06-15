@@ -18,9 +18,9 @@ interface JsonGroupSerializable extends \JsonSerializable
     /**
      * Return JSON Array Based on Groups
      *
-     * @param string[] $groups
+     * @param string[]|null $groups
      *
      * @return mixed[]
      */
-    public function jsonGroupSerialize(array $groups = []);
+    public function jsonGroupSerialize(array $groups = null);
 }

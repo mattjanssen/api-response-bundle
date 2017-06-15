@@ -77,7 +77,13 @@ class ApiConfigCompiler
         $originPath = $request->getPathInfo();
         foreach ($this->pathConfigs as $pathConfig) {
             $pathRegex = $pathConfig->getPattern();
-            if (!preg_match('#' . str_replace('#', '\#', $pathRegex) . '#', $originPath)) {
+            if ($pathRegex !== null && !preg_match('#' . str_replace('#', '\#', $pathRegex) . '#', $originPath)) {
+                // No path match.
+                continue;
+            }
+
+            $pathPrefix = $pathConfig->getPrefix();
+            if ($pathPrefix !== null && strpos($originPath, $pathPrefix) !== 0) {
                 // No path match.
                 continue;
             }
@@ -161,6 +167,7 @@ class ApiConfigCompiler
 
         // @TODO Use PHP 7 null coalescing operator.
         $apiPathConfig->setPattern(isset($configArray['pattern']) ? $configArray['pattern'] : null);
+        $apiPathConfig->setPrefix(isset($configArray['prefix']) ? $configArray['prefix'] : null);
 
         return $apiPathConfig;
     }
@@ -174,7 +181,7 @@ class ApiConfigCompiler
         // @TODO Use PHP 7 null coalescing operator.
         $apiConfig
             ->setSerializer(isset($configArray['serializer']) ? $configArray['serializer'] : null)
-            ->setGroups(isset($configArray['serialize_groups']) ? $configArray['serialize_groups'] : null)
+            ->setGroups(isset($configArray['serialize_groups']) && is_array($configArray['serialize_groups']) ? $configArray['serialize_groups'] : null)
             ->setCorsAllowHeaders(isset($configArray['cors_allow_headers']) ? $configArray['cors_allow_headers'] : null)
             ->setCorsAllowOriginRegex(isset($configArray['cors_allow_origin_regex']) ? $configArray['cors_allow_origin_regex'] : null)
             ->setCorsMaxAge(isset($configArray['cors_max_age']) ? $configArray['cors_max_age'] : null)

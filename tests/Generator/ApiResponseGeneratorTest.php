@@ -2,6 +2,7 @@
 
 namespace MattJanssen\ApiResponseBundle\Test\Generator;
 
+use MattJanssen\ApiResponseBundle\Compiler\ApiConfigCompiler;
 use MattJanssen\ApiResponseBundle\DependencyInjection\Configuration;
 use MattJanssen\ApiResponseBundle\Factory\SerializerAdapterFactory;
 use MattJanssen\ApiResponseBundle\Generator\ApiResponseGenerator;
@@ -9,6 +10,7 @@ use MattJanssen\ApiResponseBundle\Serializer\Adapter\JsonEncodeSerializerAdapter
 use MattJanssen\ApiResponseBundle\Test\AppMocker;
 use MattJanssen\ApiResponseBundle\Test\AppTestCase;
 use MattJanssen\ApiResponseBundle\Test\Fixtures\TestCategory;
+use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpFoundation\Response;
 
 class ApiResponseGeneratorTest extends AppTestCase
@@ -106,7 +108,7 @@ class ApiResponseGeneratorTest extends AppTestCase
     public function testSuccessResponseWithDefaultSerializer()
     {
         $factoryMock = \Mockery::mock(SerializerAdapterFactory::class)->shouldReceive('createSerializerAdapter')->once()->with(Configuration::SERIALIZER_JSON_ENCODE)->andReturn(new JsonEncodeSerializerAdapter())->getMock();
-        $generator = new ApiResponseGenerator($factoryMock);
+        $generator = new ApiResponseGenerator(new RequestStack(), new ApiConfigCompiler([], []), $factoryMock);
 
         $generator->generateSuccessResponse('foobar');
     }
@@ -114,7 +116,7 @@ class ApiResponseGeneratorTest extends AppTestCase
     public function testSuccessResponseWithSpecificSerializer()
     {
         $factoryMock = \Mockery::mock(SerializerAdapterFactory::class)->shouldReceive('createSerializerAdapter')->once()->with('other_serializer')->andReturn(new JsonEncodeSerializerAdapter())->getMock();
-        $generator = new ApiResponseGenerator($factoryMock);
+        $generator = new ApiResponseGenerator(new RequestStack(), new ApiConfigCompiler([], []), $factoryMock);
 
         $generator->generateSuccessResponse('foobar', null, [], 'other_serializer');
     }

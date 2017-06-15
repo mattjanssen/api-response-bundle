@@ -31,9 +31,6 @@ class Configuration implements ConfigurationInterface
             $rootNode->children()
                 ->arrayNode('defaults')
                     ->children()
-                        ->arrayNode('pattern')
-                            ->prototype('scalar')->isRequired()->end()
-                        ->end()
         );
 
         $this->buildConfigNode(
@@ -42,7 +39,8 @@ class Configuration implements ConfigurationInterface
                     ->useAttributeAsKey('name')
                     ->prototype('array')
                         ->children()
-                        ->scalarNode('pattern')->end()
+                            ->scalarNode('pattern')->end()
+                            ->scalarNode('prefix')->end()
         );
 
         return $treeBuilder;
@@ -56,17 +54,8 @@ class Configuration implements ConfigurationInterface
     private function buildConfigNode(NodeBuilder $nodeBuilder)
     {
         return $nodeBuilder
-            ->enumNode('serializer')
-                ->values([
-                    self::SERIALIZER_ARRAY,
-                    self::SERIALIZER_JSON_ENCODE,
-                    self::SERIALIZER_JSON_GROUP_ENCODE,
-                    self::SERIALIZER_JMS_SERIALIZER,
-                ])
-            ->end()
-            ->arrayNode('serialize_groups')
-                ->prototype('scalar')->end()
-            ->end()
+            ->scalarNode('serializer')->end()
+            ->variableNode('serialize_groups')->end()
             ->scalarNode('cors_allow_origin_regex')->end()
             ->arrayNode('cors_allow_headers')
                 ->prototype('scalar')->end()

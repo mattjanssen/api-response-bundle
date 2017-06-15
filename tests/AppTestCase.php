@@ -4,6 +4,8 @@ namespace MattJanssen\ApiResponseBundle\Test;
 
 use Doctrine\Common\Annotations\AnnotationRegistry;
 
+error_reporting(E_ALL);
+
 class AppTestCase extends \PHPUnit_Framework_TestCase
 {
     public function setUp()
