@@ -48,6 +48,7 @@ class SerializerAdapterFactory
     public function createSerializerAdapter($serializerName)
     {
         switch ($serializerName) {
+            case null:
             case Configuration::SERIALIZER_ARRAY:
                 $serializerAdapter = new Adapter\ArraySerializerAdapter();
                 break;
