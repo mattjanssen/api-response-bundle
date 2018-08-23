@@ -2,6 +2,7 @@
 
 namespace MattJanssen\ApiResponseBundle\Serializer\Adapter;
 
+use JsonSerializable;
 use MattJanssen\ApiResponseBundle\Serializer\ArraySerializable;
 
 /**
@@ -53,6 +54,10 @@ class ArraySerializerAdapter implements SerializerAdapterInterface
         if (is_object($data)) {
             if ($data instanceof ArraySerializable) {
                 return $this->serializedMixed($data->arraySerialize($groups), $groups);
+            }
+
+            if ($data instanceof JsonSerializable) {
+                return $this->serializedMixed($data->jsonSerialize(), $groups);
             }
 
             // A non-serializable object returns as an empty \stdClass object.
