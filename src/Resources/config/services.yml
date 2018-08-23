@@ -4,8 +4,8 @@ services:
         class: MattJanssen\ApiResponseBundle\Compiler\ApiConfigCompiler
         public: false
         arguments:
-            - %api_response.defaults%
-            - %api_response.paths%
+            - "%api_response.defaults%"
+            - "%api_response.paths%"
 
     # Subscriber
     api_response.subscriber.api_response:
@@ -15,7 +15,7 @@ services:
             - "@api_response.generator.api_response"
             - "@api_response.compiler.api_config"
             - "@logger"
-            - %kernel.debug%
+            - "%kernel.debug%"
 
     # Factory
     api_response.factory.serializer_adapter:
