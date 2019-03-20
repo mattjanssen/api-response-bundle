@@ -48,7 +48,7 @@ class ApiResponseSubscriber implements EventSubscriberInterface
     /**
      * PSR Logger
      *
-     * @var LoggerInterface
+     * @var LoggerInterface|null
      */
     private $logger;
 
@@ -64,13 +64,13 @@ class ApiResponseSubscriber implements EventSubscriberInterface
      *
      * @param ApiResponseGenerator $responseGenerator
      * @param ApiConfigCompiler $configCompiler
-     * @param LoggerInterface $logger
+     * @param LoggerInterface|null $logger
      * @param bool $debug
      */
     public function __construct(
         ApiResponseGenerator $responseGenerator,
         ApiConfigCompiler $configCompiler,
-        LoggerInterface $logger,
+        ?LoggerInterface $logger,
         $debug
     ) {
         $this->responseGenerator = $responseGenerator;
@@ -224,10 +224,12 @@ class ApiResponseSubscriber implements EventSubscriberInterface
 
         if ($httpCode >= Response::HTTP_INTERNAL_SERVER_ERROR) {
             // Log exceptions that result in a 5xx server response.
-            $this->logger->critical(
-                sprintf('API Exception %s: "%s" at %s line %s', get_class($exception), $exception->getMessage(), $exception->getFile(), $exception->getLine()),
-                ['exception' => $exception]
-            );
+            if ($this->logger !== null) {
+                $this->logger->critical(
+                    sprintf('API Exception %s: "%s" at %s line %s', get_class($exception), $exception->getMessage(), $exception->getFile(), $exception->getLine()),
+                    ['exception' => $exception]
+                );
+            }
         }
     }
 
