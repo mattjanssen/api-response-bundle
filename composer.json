@@ -19,7 +19,7 @@
     "require-dev": {
         "symfony/phpunit-bridge": "^3.4.19|^4.1.8|^5",
         "mockery/mockery": "^0.9.5|^1",
-        "phpcollection/phpcollection": "~0.2",
+        "phpoption/phpoption": "^1.1",
         "jms/serializer-bundle": "^1|^2|^3"
     },
     "suggest": {
