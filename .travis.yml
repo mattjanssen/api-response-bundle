@@ -8,7 +8,6 @@ cache:
     - .phpunit
 
 php:
-  - 5.5
   - 5.6
   - 7.0
   - 7.1
@@ -26,6 +25,7 @@ env:
     - deps=no
 
 before_install:
+  - export SYMFONY_PHPUNIT_REMOVE_RETURN_TYPEHINT=1
   - export SYMFONY_PHPUNIT_DIR="$(pwd)/.phpunit"
   - INI_FILE=~/.phpenv/versions/$(phpenv version-name)/etc/conf.d/travis.ini
   - echo memory_limit = -1 >> $INI_FILE
