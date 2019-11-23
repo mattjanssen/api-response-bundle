@@ -20,7 +20,7 @@ class JsonGroupEncodeSerializerAdapterTest extends AppTestCase
     {
         $adapter = new JsonGroupEncodeSerializerAdapter();
 
-        self::setExpectedException(\RuntimeException::class);
+        self::expectException(\RuntimeException::class);
 
         $adapter->serialize(acos(8));
     }

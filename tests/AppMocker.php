@@ -12,6 +12,9 @@ use Symfony\Component\HttpFoundation\RequestStack;
 
 class AppMocker
 {
+    /**
+     * @return \Symfony\Component\DependencyInjection\ContainerInterface|\Mockery\MockInterface|Container
+     */
     public static function getUnusedContainer()
     {
         return \Mockery::mock(Container::class);

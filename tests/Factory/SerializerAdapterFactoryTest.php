@@ -34,6 +34,7 @@ class SerializerAdapterFactoryTest extends AppTestCase
 
     public function testJms()
     {
+        /** @var \Symfony\Component\DependencyInjection\ContainerInterface $containerMock */
         $containerMock = \Mockery::mock(Container::class)->shouldReceive('get')->once()->with('jms_serializer')->andReturn(AppMocker::getJmsSerializer())->getMock();
         $adapterFactory = new SerializerAdapterFactory($containerMock);
 
@@ -54,12 +55,15 @@ class SerializerAdapterFactoryTest extends AppTestCase
         self::assertInstanceOf(SerializerAdapterInterface::class, $returnedAdaptor);
     }
 
+    /**
+     * @Assert
+     */
     public function testUnrecognized()
     {
         $container = \Mockery::mock(Container::class)->shouldReceive('has')->once()->with('AN_UNSUPPORTED_ADAPTER')->andReturn(false)->getMock();
         $adapterFactory = new SerializerAdapterFactory($container);
 
-        $this->setExpectedException(\RuntimeException::class);
+        $this->expectException(\RuntimeException::class);
 
         $adapterFactory->createSerializerAdapter('AN_UNSUPPORTED_ADAPTER');
     }
