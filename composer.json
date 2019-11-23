@@ -12,12 +12,12 @@
         }
     ],
     "require": {
-        "php": "^5.5|^7",
-        "symfony/symfony": "^3.4|^4|^5",
+        "php": "^5.4|^7",
+        "symfony/symfony": "^2.3|^3|^4|^5",
         "sensio/framework-extra-bundle": "^3|^4|^5"
     },
     "require-dev": {
-        "symfony/phpunit-bridge": "^3.2|^4|^5",
+        "symfony/phpunit-bridge": "^3.4.19|^4.1.8|^5",
         "mockery/mockery": "^0.9.5|^1",
         "jms/serializer-bundle": "^1|^2|^3"
     },
