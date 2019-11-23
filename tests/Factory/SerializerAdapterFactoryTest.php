@@ -55,9 +55,6 @@ class SerializerAdapterFactoryTest extends AppTestCase
         self::assertInstanceOf(SerializerAdapterInterface::class, $returnedAdaptor);
     }
 
-    /**
-     * @Assert
-     */
     public function testUnrecognized()
     {
         $container = \Mockery::mock(Container::class)->shouldReceive('has')->once()->with('AN_UNSUPPORTED_ADAPTER')->andReturn(false)->getMock();
