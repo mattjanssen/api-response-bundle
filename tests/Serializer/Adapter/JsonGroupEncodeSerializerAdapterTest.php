@@ -11,7 +11,7 @@ class JsonEncodeSerializerAdapterTest extends AppTestCase
     {
         $adapter = new JsonEncodeSerializerAdapter();
 
-        self::setExpectedException(\RuntimeException::class);
+        self::expectException(\RuntimeException::class);
 
         $adapter->serialize(acos(8));
     }

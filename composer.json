@@ -13,13 +13,14 @@
     ],
     "require": {
         "php": "^5.4|^7",
-        "symfony/symfony": "^2.3|^3",
-        "sensio/framework-extra-bundle": "^3|^4"
+        "symfony/symfony": "^2.4|^3|^4|^5",
+        "sensio/framework-extra-bundle": "^3|^4|^5"
     },
     "require-dev": {
-        "phpunit/phpunit": "^4.0",
-        "mockery/mockery": "^0.9.5",
-        "jms/serializer-bundle": "^1"
+        "symfony/phpunit-bridge": "^3.4.19|^4.1.8|^5",
+        "mockery/mockery": "^0.9.5|^1",
+        "phpoption/phpoption": "^1.1",
+        "jms/serializer-bundle": "^1|^2|^3"
     },
     "suggest": {
         "jms/serializer-bundle": "For serializing with the JMS Serializer"

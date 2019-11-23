@@ -1,14 +1,39 @@
+language: php
+
 sudo: false
 
-language: php
+cache:
+  directories:
+    - $HOME/.composer/cache/files
+    - .phpunit
+
 php:
-  - 5.5
   - 5.6
   - 7.0
+  - 7.1
+  - 7.2
+  - 7.3
 
-before_script:
-  - composer install --no-interaction -o
+matrix:
+  include:
+    - php: 7.0
+      env: deps=low
+  fast_finish: true
+
+env:
+  global:
+    - deps=no
+
+before_install:
+  - export SYMFONY_PHPUNIT_REMOVE_RETURN_TYPEHINT=1
+  - export SYMFONY_PHPUNIT_DIR="$(pwd)/.phpunit"
+  - INI_FILE=~/.phpenv/versions/$(phpenv version-name)/etc/conf.d/travis.ini
+  - echo memory_limit = -1 >> $INI_FILE
+  - phpenv config-rm xdebug.ini
+
+install:
+  - if [ "$deps" = "no" ]; then composer install; fi;
+  - if [ "$deps" = "low" ]; then composer --prefer-lowest --prefer-stable update; fi;
 
 script:
-  - mkdir -p build/logs
-  - vendor/bin/phpunit
+  - ./vendor/bin/simple-phpunit
