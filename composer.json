@@ -13,7 +13,7 @@
     ],
     "require": {
         "php": "^5.4|^7",
-        "symfony/symfony": "^2.3|^3|^4|^5",
+        "symfony/symfony": "^2.4|^3|^4|^5",
         "sensio/framework-extra-bundle": "^3|^4|^5"
     },
     "require-dev": {
